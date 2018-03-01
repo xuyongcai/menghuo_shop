@@ -1,0 +1,127 @@
+{include file="header"}
+<link rel="stylesheet" type="text/css" href="__MOBILE__/css/comment.css">
+
+<div class="container">
+	<header class="dd_header">
+		<a href="{:url('order/lists',['type'=>4])}">
+			<img src="__MOBILE__/images/arrow.jpg" />
+		</a>
+		
+		<span>评论</span>
+	</header>
+	<!-- 评星 -->
+	<div class="stars_box block">
+		<ul>
+			<li>
+				<div class="txt">
+					<span>产品质量</span>
+				</div>
+				<div class="stars">
+					<img v-for="(item,idx) in starList1" :src="item?star_hl:star" @click="changeStar1(idx)">
+				</div>
+			</li>
+			<li>
+				<div class="txt">
+					<span>物流速度</span>
+				</div>
+				<div class="stars">
+					<img v-for="(item,idx) in starList2" :src="item?star_hl:star" @click="changeStar2(idx)">
+				</div>
+			</li>
+			<li>
+				<div class="txt">
+					<span>服务态度</span>
+				</div>
+				<div class="stars">
+					<img v-for="(item,idx) in starList3" :src="item?star_hl:star" @click="changeStar3(idx)">
+				</div>
+			</li>
+		</ul>
+	</div>
+
+	<!-- 评论框 -->
+	<div class="block">
+		<span class="title">评语</span>
+		<b-form-textarea id="textarea1" v-model="comment_text" placeholder="请输入评论内容" :rows="5" :max-rows="6">
+		</b-form-textarea>
+	</div>
+	<!-- 上传图片 -->
+	<div class="upload block">
+		<span class="title">上传图片</span>
+		<mh-upload-many v-model="comment_thumbs" :preview_img="comment_thumbs"></mh-upload-many>
+	</div>
+	<!-- btn -->
+	<div class="btn_box" @click="submit">
+		<span>提交评论</span>
+	</div>
+	{$g_lists.goods_id}
+
+</div>
+
+<script type="text/javascript">
+	new Vue({
+		el:'.container',
+		data:{
+			comment_text: '',
+			comment_thumbs: [],
+			star: '__MOBILE__/images/star.jpg',
+			star_hl: '__MOBILE__/images/star_hl.jpg',
+			starList1: [0, 0, 0, 0, 0],
+			starList2: [0, 0, 0, 0, 0],
+			starList3: [0, 0, 0, 0, 0],
+			quailty_attitude_pf1: 0,
+			speed_attitude_pf: 0,
+			attitude_pf3: 0,
+		},
+		created(){
+			
+		},
+		methods: {
+			changeStar1(idx) {
+				this.quailty_attitude_pf1 = idx + 1;
+				this.starList1 = this.dealStar(idx)
+			},
+			changeStar2(idx) {
+				this.speed_attitude_pf = idx + 1;
+				this.starList2 = this.dealStar(idx)
+			},
+			changeStar3(idx) {
+				this.attitude_pf3 = idx + 1;
+				this.starList3 = this.dealStar(idx)
+			},
+			dealStar(n) {
+				var arr = [];
+				for(let i = 0; i < 5; i++) {
+					if(i <= n) {
+						arr.push(1)
+					} else {
+						arr.push(0)
+					}
+				}
+				return arr
+			},
+			submit() {
+				this.$http.post('{:url("addComment")}', {
+						quality_pf: this.quailty_attitude_pf1,
+						speed_pf: this.speed_attitude_pf,
+						attitude_pf: this.attitude_pf3,
+						order_id:{$g_lists.order_id},
+						goods_id:{$g_lists.goods_id},
+						comment_text: this.comment_text,
+						comment_thumbs: this.comment_thumbs
+					})
+					.then((rtnD) => {
+						this.$toast(rtnD.body.msg);
+						if(rtnD.body.code == 1){
+							location.href="{:url('user/home')}";
+						}
+						
+					})
+			}
+		}
+
+	})
+</script>
+
+</body>
+</html>

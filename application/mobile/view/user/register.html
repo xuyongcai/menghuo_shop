@@ -1,0 +1,72 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>home</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+	<link type="text/css" rel="stylesheet" href="https://unpkg.com/bootstrap/dist/css/bootstrap.min.css"/>
+	<link type="text/css" rel="stylesheet" href="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.css"/>
+
+	<script src="https://cdn.bootcss.com/vue/2.5.13/vue.min.js"></script>
+	
+	<!-- js 补丁 -->
+	<script src="https://unpkg.com/babel-polyfill@latest/dist/polyfill.min.js"></script>
+	<script src="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.js"></script>
+
+	<script type="text/javascript" src="https://cdn.bootcss.com/vue-resource/1.3.4/vue-resource.min.js"></script>
+</head>
+<body>
+	<div class="vue_box">
+	 	<b-container>
+			<b-form>
+				<b-form-group label="用户名" description="请不要让我太难记">
+					<b-form-input v-model="user.username">
+				</b-form-group>
+				<b-form-group label="密码">
+					<b-form-input type="password" v-model="user.password">
+				</b-form-group>
+				<b-button variant="primary" @click="doRegister()">我要注册</b-button>
+				<b-alert :variant="variant" :show="msg">{{msg}}</b-alert>
+			</b-form>
+		</b-container>
+	</div>
+</body>
+</html>
+
+<script type="text/javascript">
+	new Vue({
+		el:'.vue_box',
+		data:{
+			user:{
+				username:'',
+				password:'',
+			},
+			variant:"success",
+			msg:false,
+		},
+		methods:{
+			doRegister:function () {
+				// promise
+				this.$http.get("{:url('doRegister')}",{params:{
+					username:this.user.username,
+					password:this.user.password,
+
+				}}).then((rtnD)=>{
+
+					this.msg = rtnD.body.msg
+
+					// code=0是后台错误的状态
+					if(rtnD.body.code==0){
+						this.variant = "danger"
+					}else{
+						this.variant = "success"
+				
+						location.href = rtnD.body.url
+					}
+					
+				})
+			}
+		}
+	})
+</script>

@@ -1,0 +1,192 @@
+{include file="header"}
+
+	<style type="text/css">
+	.add_box{ 
+	    width: 100%;
+	    border: 1px solid #ccc;
+	    height: 100%;
+	    padding: 10px;}
+		.fade-enter-active{
+			 transition: all 1s;
+		}
+		.fade-enter{
+			opacity: 0;
+		}
+		.form-control.is-valid{border-color:#ccc !important;}
+	</style>
+
+	<div class="vue_box">
+		<transition name="fade">
+			<div class="data_list_box" v-if="!is_add && !is_edit">
+				<h2>分类列表</h2>
+				<b-button variant="primary" @click="add()">添加分类</b-button>
+
+				<b-table :items="data_list" hover :fields="fields">
+					<template slot="manger" slot-scope="row">
+						<b-button @click="edit(row.item)" variant="primary" >编辑</b-button>
+						<b-button @click="del(row.item.id,row.index)" variant="danger" >删除</b-button>
+					</template>
+					<template slot="parent_id" slot-scope="row">
+						{{row.item.parent_id==0?'无':first_category[row.item.parent_id]['name']}}
+				
+					</template>
+					<template slot="status" slot-scope="row">
+						{{row.item.status==1?'显示':'隐藏'}}
+					</template>
+				</b-table>
+	 
+
+				<b-pagination size="md" :total-rows="total_rows" v-model="currentPage" :per-page="per_page">
+	    		</b-pagination>
+			</div>
+		</transition>
+		
+		<transition name="fade">
+			<div class="add_box" v-if="is_add || is_edit">
+				<h2 >{{form_type}}表单</h2>
+
+				<b-form-group label="分类名称" >
+					<b-form-input   v-model="name"></b-form-input>
+				</b-form-group>
+
+				<b-form-group label="所属分类" >
+
+					<b-form-select v-model="parent_id" :options="first_category" value-field="id" text-field="name">
+						<template slot="first">
+							<option :value="null" disabled>请选择</option>
+						</template>
+					</b-form-select>
+				</b-form-group>
+				<b-button @click="is_add?save():update()" variant="primary" :disabled=" name==null">{{form_type}}分类</b-button>
+				<b-button @click="is_add=is_edit=false" variant="info">返回</b-button>
+			</div>
+		</transition>
+
+	</div>
+
+
+<script type="text/javascript">
+	new Vue({
+		el:'.vue_box',
+		data:{
+			data_list:[],//数据列表
+			first_category:[],//一级分类
+			name:null,//分类名称
+			parent_id:'',//上级分类
+			edit_info:null,//编辑信息
+			is_add:false,//是否添加
+			is_edit:false,//是否编辑
+			fields:[
+				{
+					key:'name',
+					label:'分类名称',
+					sortable: false
+				},
+				{
+					key:'parent_id',
+					label:'所属分类'
+				},
+				{
+					key:'status',
+					label:'是否显示'
+				},
+				{
+					key:'manger',
+					label:'操作'
+				}
+			],
+			per_page:0,//每一页显示的数量
+			total_rows:0,//总有多少条记录
+			currentPage:1,//当前是第一页
+
+		},
+		watch:{
+			currentPage:function (val) {
+				// tp5分页，直接传固定参数page=1
+				this.$http.get("{:url('getCategory')}",{params:{page:val}})
+					.then((rtnD)=>{
+						this.data_list = rtnD.body.data
+					})
+					
+			}
+		},
+		created(){
+
+			this.$http.post("{:url('getFirstCategory')}")
+				.then((rtnD)=>{
+					// console.log(rtnD)
+					this.first_category  = rtnD.body
+				})
+				.then(()=>{
+					var list = JSON.parse('{$info}')
+					// console.log(list)
+					if (list) {
+						this.data_list = list.data
+						this.total_rows = list.total
+						this.per_page = list.per_page
+						this.currentPage = list.current_page
+					}
+				})			
+		},
+		computed:{
+			form_type(){
+				if (this.is_add) {
+					return '添加'
+				}else if(this.is_edit) {
+					return '编辑'
+				}
+				return ''
+			},
+		},
+		methods:{
+			clear:function () {
+			 	this.name = null
+				this.parent_id = ''
+			},
+			add:function () {
+				this.is_add = true
+				this.clear()
+			},
+			edit:function (info) {
+				this.is_edit = true
+				this.name = info.name
+				this.parent_id = info.parent_id
+				this.edit_info = info
+			} ,
+			update:function () {
+				this.$http.post("{:url('updateCategory')}",{name:this.name,parent_id:this.parent_id,id:this.edit_info.id})
+					.then((rtnD)=>{
+						this.is_edit = false
+						this.edit_info.name = this.name
+						this.edit_info.parent_id = this.parent_id
+					})
+			},
+			save:function () {
+				this.$http.post("{:url('addCategory')}",{name:this.name,parent_id:this.parent_id})
+					.then(()=>{
+						this.$http.get("{:url('getCategory')}",{params:{page:this.currentPage}})
+							.then((rtnD)=>{
+								this.is_add = false
+								this.data_list = rtnD.body.data
+								this.clear()
+							})
+					
+					})
+
+
+			},
+			del:function (id,index) {
+				this.$http.post("{:url('delCategory')}",{id})
+					.then(()=>{
+						this.$http.get("{:url('getCategory')}",{params:{page:this.currentPage}})
+							.then((rtnD)=>{
+								this.data_list = rtnD.body.data
+							})
+					
+					})
+			}
+
+		}
+	})
+</script>
+{include file="footer"}

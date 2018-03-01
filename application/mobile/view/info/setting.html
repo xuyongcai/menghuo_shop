@@ -1,0 +1,66 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>register</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+	<link type="text/css" rel="stylesheet" href="https://unpkg.com/bootstrap/dist/css/bootstrap.min.css"/>
+	<link type="text/css" rel="stylesheet" href="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.css"/>
+
+	<script src="https://cdn.bootcss.com/vue/2.5.13/vue.min.js"></script>
+	
+	<!-- js 补丁 -->
+	<script src="https://unpkg.com/babel-polyfill@latest/dist/polyfill.min.js"></script>
+	<script src="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.js"></script>
+
+	<script type="text/javascript" src="https://cdn.bootcss.com/vue-resource/1.3.4/vue-resource.min.js"></script>
+</head>
+<body>
+	<div class="vue_box">
+	 	<b-list-group>
+			<b-list-group-item class="d-flex justify-content-between"  v-b-modal.sex_edit>
+				<span>性别</span> 
+				<span>{{sex_o[user_info.sex]}} ></span>
+			</b-list-group-item>
+			<b-list-group-item class="d-flex justify-content-between">
+				收货地址
+				<span>></span>
+			</b-list-group-item>
+			<b-list-group-item>Morbi leo risus</b-list-group-item>
+			<b-list-group-item>Porta ac consectetur ac</b-list-group-item>
+			<b-modal id="sex_edit" title="编辑性别" @ok="changeSex">
+				<b-form-select v-model="choise_sex" :options="sex_o" class="mb-3" />
+			</b-modal>
+		</b-list-group>
+	</div>
+</body>
+</html>
+
+<script type="text/javascript">
+	new Vue({
+		el:'.vue_box',
+		data:{
+			user_info:JSON.parse('{$user_info}'),
+			sex_o:{
+				0:'保密',
+				1:'男',
+				2:'女',
+			},
+			choise_sex:0,//初始值用数据库对应
+		},
+		created:function(){
+			// console.log(this.user_info)
+		},
+		methods:{
+			changeSex:function(){
+				this.user_info.sex = this.choise_sex;
+
+				this.$http.post("{:url('info/editByColumn')}",{column:'sex',value:this.choise_sex})
+					.then((rtnD)=>{
+
+					})
+			}
+		}
+	})
+</script>

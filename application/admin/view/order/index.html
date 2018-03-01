@@ -1,0 +1,225 @@
+{include file="header"}
+
+	<style type="text/css">
+	.add_box{ 
+	    width: 100%;
+	    border: 1px solid #ccc;
+	    height: 100%;
+	    padding: 10px;}
+		.fade-enter-active{
+			 transition: all 1s;
+		}
+		.fade-enter{
+			opacity: 0;
+		}
+		.form-control.is-valid{border-color:#ccc !important;}
+
+		ul{margin: 0;padding: 0;}
+		ul li{list-style: none;}
+	</style>
+</head>
+<body>
+	<div class="vue_box container">
+		<transition name="fade">
+			<div class="data_list_box" v-if="!is_add && !is_edit">
+				<h2>订单列表</h2>
+				<!-- <b-button variant="primary" @click="add()">添加订单</b-button> -->
+
+				<b-table :items="data_list" hover :fields="fields">
+					<template slot="manger" slot-scope="row">
+						<b-button @click="edit(row.item)" variant="primary" >编辑</b-button>
+						<b-button @click="del(row.item.id,row.index)" variant="danger" >删除</b-button>
+						<b-button  variant="info"  @click="row.toggleDetails();details(row.item,row.index,$event);">详细信息</b-button>
+					</template>
+
+					<template slot="row-details" slot-scope="row">
+						<b-card>
+							<p>收货人：{{user_name}}</p>
+							<p>收货人手机：{{row.item.phone}}</p>
+							<p>地址信息：{{row.item.address}}</p>
+							<p>订单总金额：￥{{row.item.total_amount }}</p>
+							
+							<ul>
+								<li v-for="g_info in goods_list">
+									<img :src="g_info.goods_thumb" alt="">
+									<p>商品名称：{{g_info.goods_name}}</p>
+									<p>购买数量：{{g_info.goods_num}}</p>
+								</li>
+							</ul>
+
+						</b-card>
+					</template>
+
+					<template slot="order_status" slot-scope="row">	
+						{{order_status[row.item.order_status]}}
+					</template>
+					<template slot="pay_status" slot-scope="row">	
+						{{pay_status[row.item.pay_status]}}
+					</template>
+
+				</b-table>
+	 
+
+				<b-pagination size="md" :total-rows="total_rows" v-model="currentPage" :per-page="per_page">
+	    		</b-pagination>
+			</div>
+		</transition>
+
+
+		<transition name="fade">
+			<div class="add_box" v-if="is_add || is_edit">
+				<h2 >{{form_type}}表单</h2>
+
+				<b-form-group label="订单序列号：" >
+					<span >{{edit_info.order_sn}}</span>
+				</b-form-group>
+				<b-form-group :label="'订单客户名：'+user_name" >
+					<!-- <span>{{user_name}}</span> -->
+				</b-form-group>
+
+				<b-form-group label="全部金额" >
+					<span>{{edit_info.total_amount}}</span>
+				</b-form-group>
+
+				<b-form-group label="实际金额" >
+					<b-form-input   v-model="edit_info.order_amount"></b-form-input>
+				</b-form-group>
+
+				<b-form-group label="手机" >
+					<b-form-input   v-model="edit_info.phone"></b-form-input>
+				</b-form-group>
+
+				<b-form-group label="地址" >
+					<b-form-input   v-model="edit_info.address"></b-form-input>
+				</b-form-group>
+
+
+				<b-button @click="is_add?save():update()" variant="primary">{{form_type}}订单</b-button>
+				<b-button @click="is_add=is_edit=false" variant="info">返回</b-button>
+			</div>
+		</transition>
+		
+	</div>
+
+<script type="text/javascript">
+	new Vue({
+		el:'.vue_box',
+		data:{
+			data_list:[],//数据列表
+			user_name:'',//订单客户名称
+			parent_id:'',//上级订单
+			edit_info:null,//编辑信息
+			goods_list:null,//订单对应的商品列表
+			is_add:false,//是否添加
+			is_edit:false,//是否编辑
+			order_status:{$order_status},//订单状态数组
+			pay_status: {$pay_status},//支付状态数组
+			fields:[
+				{
+					key:'order_sn',
+					label:'订单序列号',
+					sortable: false
+				},
+				{
+					key:'order_status',
+					label:'订单状态'
+				},
+				{
+					key:'pay_status',
+					label:'支付状态'
+				},
+				{
+					key:'manger',
+					label:'操作'
+				}
+			],
+			per_page:0,//每一页显示的数量
+			total_rows:0,//总有多少条记录
+			currentPage:1,//当前是第一页
+
+		},
+		watch:{
+			currentPage:function (val) {
+				// tp5分页，直接传固定参数page=1
+				this.$http.get("{:url('getOrder')}",{params:{page:val}})
+					.then((rtnD)=>{
+						this.data_list = rtnD.body.data
+					})
+					
+			}
+		},
+		created(){
+
+			var list = JSON.parse('{$info}')
+			// console.log(list)
+			if (list) {
+				this.data_list = list.data
+				this.total_rows = list.total
+				this.per_page = list.per_page
+				this.currentPage = list.current_page
+			}
+						
+		},
+		computed:{
+			form_type(){
+				if (this.is_add) {
+					return '添加'
+				}else if(this.is_edit) {
+					return '编辑'
+				}
+				return ''
+			},
+		},
+		methods:{
+			edit:function (info) {
+				this.is_edit = true
+
+				this.edit_info = info
+				this.$http.post("{:url('getUsername')}",{id:info.user_id})
+				.then((rtnD)=>{
+					// console.log(rtnD)
+					this.user_name = rtnD.body;
+				})
+			} ,
+			update:function () {
+				this.$http.post("{:url('updateOrder')}",{
+					order_amount:this.edit_info.order_amount,
+					phone:this.edit_info.phone,
+					address:this.edit_info.address,
+					id:this.edit_info.id
+				})
+					.then((rtnD)=>{
+						this.is_edit = false
+
+					})
+			},
+			del:function (id,index) {
+				this.$http.post("{:url('delOrder')}",{id})
+					.then(()=>{
+						this.$http.get("{:url('getOrder')}",{params:{page:this.currentPage}})
+							.then((rtnD)=>{
+								this.data_list = rtnD.body.data
+							})
+					
+					})
+			},
+			details(item,index,event){
+				// console.log(event)
+				this.$http.post("{:url('getGoods')}",{
+					order_id:item.id
+				}).then((rtnD)=>{
+					this.goods_list = rtnD.body
+				})
+
+				this.$http.post("{:url('getUsername')}",{id:item.user_id})
+				.then((rtnD)=>{
+					// console.log(rtnD)
+					this.user_name = rtnD.body;
+				})
+			}
+
+		}
+	})
+</script>
+
+{include file="footer"}

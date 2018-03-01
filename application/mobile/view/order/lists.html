@@ -1,0 +1,65 @@
+{include file="header"}
+<link rel="stylesheet" href="__MOBILE__/css/geren.css">
+<style type="text/css">
+	
+</style>
+
+<div class="vue_box">
+	<header class="dd_header">
+		<a href="{:url('user/home')}"> <img src="__MOBILE__/images/login_1_02.jpg" /></a>
+		<span>我的订单</span>
+
+	</header>
+	<ul class="nav nav-tabs" role="tablist">
+		<li role="presentation" {if $type == 666} class="active" {/if}>
+			<a href="{:url('order/lists')}" >总订单</a>
+		</li>
+		<li role="presentation" {if $type == 0} class="active" {/if}>
+			<a href="{:url('order/lists',['type'=>0])}" >未付款</a>
+		</li>
+		<li role="presentation" {if $type == 1} class="active" {/if}>
+			<a href="{:url('order/lists',['type'=>1])}" >待收货</a>
+		</li>
+		<li role="presentation" {if $type == 7} class="active" {/if}>
+			<a href="{:url('order/lists',['type'=>7])}" >待成团</a>
+		</li>
+		<li role="presentation" {if $type == 4} class="active" {/if}>
+			<a href="{:url('order/lists',['type'=>4])}" >待评价</a>
+		</li>
+	</ul>
+	
+	<div class="tab-content">
+
+		<div role="tabpanel" class="tab-pane active" id="home">
+			{foreach $o_list as $val}
+			<ul class="list_sp">
+				<li>订单序列号：{$val.order_sn}</li>
+				<li>订单状态：<span>{$order_status[$val.order_status]} {$pay_status[$val.pay_status]}</span></li>
+				<li>收货人：{$val.username}</li>
+				<li>收货人手机号：{$val.phone}</li>
+				<li>收货地址：深圳市宝安区</li>
+				<li>总结：￥{$val.order_amount}</li>
+				<li class="list_sp_last">
+					{if $val.order_status == 0}
+					<a href="{:url('cancelOrder',['order_id'=>$val['id']])}" class="btn btn-info">取消订单</a>
+					{elseif $val.order_status == 1}
+					<a href="" class="btn btn-primary">提醒收货</a>
+					{elseif $val.order_status == 3}
+					<a href="{:url('confimReceive',['order_id'=>$val['id']])}" class="btn btn-danger">确认收货</a>
+					{elseif $val.order_status == 4}
+					<a href="{:url('order/comment',['order_id'=>$val['id']])}" class="btn btn-danger">评论</a>
+					{elseif $val.order_status == 8}
+					<a href="" class="btn btn-info">已评论</a>
+					{/if} {if $val.pay_status == 0}
+					<a href="{:url('wxpay',['order_sn'=>$val['order_sn']])}" class="btn btn-danger">付款</a>
+					{/if}
+				</li>
+			</ul>
+			{/foreach}
+		</div>
+	</div>
+
+</div>
+
+</body>
+</html>

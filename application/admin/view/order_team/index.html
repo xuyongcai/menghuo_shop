@@ -1,0 +1,220 @@
+{include file="header"}
+
+
+<style type="text/css">
+.add_box{ 
+    width: 100%;
+    border: 1px solid #ccc;
+    height: 100%;
+    padding: 10px;}
+	.fade-enter-active{
+		 transition: all 1s;
+	}
+	.fade-enter{
+		opacity: 0;
+	}
+	.form-control.is-valid{border-color:#ccc !important;}
+</style>
+
+<!-- 引入自定义的图片上传组件 -->
+{include file="components/my_upload"}
+<div class="vue_box">
+	<transition name="fade">
+		<div class="data_list_box" v-if="!is_add && !is_edit">
+			<h2>订单列表</h2>
+
+			<b-table :items="data_list" hover :fields="fields">
+				<template slot="manger" slot-scope="row">
+					<b-button v-if="row.item.order_status==0" @click="confirm(row.item)" variant="success" >确认</b-button>
+					<b-button @click="edit(row.item)" variant="success" >编辑</b-button>
+					<b-button @click="del(row.item.found_id,row.index)" variant="danger" >删除</b-button>
+
+					 <a :href="'{:url('team_people')}'+'?found_id='+row.item.found_id" class="btn btn-info">拼团成员</a>
+				</template>
+
+				<template slot="row-details" slot-scope="row">
+					<b-card>
+
+						<p>收货人手机号码：{{row.item.mobile}}</p>
+						<p>地址信息：{{row.item.address}}</p>
+						<ul>
+							<li v-for="g_info in goods_list">
+								<img :src="g_info.goods_thumb" alt="">
+								<p>商品名称：{{g_info.goods_name}}</p>
+								<p>购买数量：{{g_info.goods_num}}</p>
+							</li>
+						</ul>
+					</b-card>
+				</template>
+				<template slot="order_status" slot-scope="row">{{order_status[row.item.order_status]}}</template>
+				<template slot="pay_status" slot-scope="row">{{pay_status[row.item.pay_status]}}</template>
+			</b-table>
+
+			<b-pagination size="md" :total-rows="total_rows" v-model="currentPage" :per-page="per_page"></b-pagination>
+		</div>
+	</transition>
+	<transition name="fade">
+		<div class="add_box" v-if="is_add || is_edit">
+			<h2 >{{form_type}}表单</h2>
+
+			<b-form-group label="订单序列号" >
+				{{edit_info.order_sn}}
+			</b-form-group>
+
+			<b-form-group label="订单状态" >
+
+				<b-form-select v-model="edit_info.order_status" :options="order_status" value-field="id" >
+					<template slot="first">
+						<option :value="null" disabled>请选择</option>
+					</template>
+				</b-form-select>
+			</b-form-group>
+			<b-form-group label="发货信息" >
+				<b-form-input placeholder="快递单号"  v-model="edit_info.shipping_code"></b-form-input>
+				<b-form-input placeholder="快递名称"  v-model="edit_info.shipping_name"></b-form-input>
+				 
+			</b-form-group>
+
+			 
+			<b-button @click="is_add?save():update()" variant="primary"  >{{form_type}}订单</b-button>
+			<b-button @click="is_add=is_edit=false" variant="info">返回</b-button>
+		</div>
+	</transition>
+
+</div>
+
+<script type="text/javascript">
+	new Vue({
+		el:'.vue_box',
+		data:{
+			data_list:[],//数据列表
+			// cate_name:null,//订单名称
+			first_cate:[],//一级订单
+			edit_info:null,//编辑信息
+			is_add:false,//是否添加
+			icon:'',//订单图标
+			is_edit:false,//是否编辑
+			goods_list:[],//订单详情的商品列表
+			order_status:{$order_status},//订单状态数组
+			pay_status: {$pay_status},//支付状态数组
+			fields:[
+				{
+					key:'order_sn',
+					label:'订单序列号'
+				},
+				{
+					key:'order_status',
+					sortable:true,
+					label:'订单状态'
+				},
+				{
+					key:'pay_status',
+					sortable:true,
+					label:'支付状态'
+				},
+				{
+					key:'need',
+					sortable:true,
+					label:'还需人数'
+				},
+				{
+					key:'total_amount',
+					sortable:true,
+					label:'总金额'
+				},
+				{
+					key:'manger',
+					label:'操作'
+				}
+			],
+			per_page:0,//每一页显示的数量
+			total_rows:0,//总有多少条记录
+			currentPage:1,//当前是第一页
+		},
+		watch:{
+			currentPage:function (val) {
+				// tp5分页，直接传固定参数page=1
+				this.$http.get("{:url('getLists')}",{params:{page:val}})
+					.then((rtnD)=>{
+						this.data_list = rtnD.body.data
+					})
+			}
+		},
+		created(){
+		 	 
+			var a_list = JSON.parse('{$info}')
+			// console.log(a_list);
+
+			if (a_list) {
+				this.data_list = a_list.data
+				this.total_rows = a_list.total
+				this.per_page = a_list.per_page
+				this.currentPage = a_list.current_page
+			}
+		},
+		computed:{
+			form_type(){
+				if (this.is_add) {
+					return '添加'
+				}else if(this.is_edit) {
+					return '编辑'
+				}
+				return ''
+			},
+		},
+		methods:{
+			add:function () {
+				this.is_add = true
+				this.clear()
+			},
+			clear:function () {
+			 	this.cate_name = null
+
+			},
+			save:function () {
+
+			},
+			edit:function (info) {
+				this.is_edit = true
+				// this.cate_name = info.cate_name
+				this.edit_info = info
+				// console.log(info)
+			} ,
+			update:function () {
+				this.$http.post("{:url('update')}",{
+						edit_info:this.edit_info
+					})
+					.then((rtnD)=>{
+						this.is_edit = false 
+					})
+			},
+			del:function (id,index) {
+				this.$http.post("{:url('del')}",{id})
+					.then((rtnD)=>{
+						  this.data_list.splice(index,1)
+					})
+			},
+			details(item,index,event){
+
+				this.$http.post("{:url('getGoods')}",{
+					order_id:item.order_id
+				}).then((rtnD)=>{
+					this.goods_list = rtnD.body
+				})
+			},
+			confirm(item){
+				// console.log(item)
+				this.$http.post("{:url('confirm')}",{
+					found_id:item.found_id,
+					order_id:item.order_id,
+				}).then((rtnD)=>{
+					item.order_status = 1
+					 this.$toast("确认成功！")
+				})
+			},
+			
+		}
+	})
+</script>
+
+{include file="footer"}

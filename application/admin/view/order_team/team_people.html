@@ -1,0 +1,45 @@
+{include file="header"}
+<table class="table hover">
+	<tr>
+		<th>ID</th>
+		<th>姓名</th>
+		<th>标识</th>
+		<th>订单ID</th>
+		<th>订单序列号</th>
+		<th>订单状态</th>
+		<th>付款状态</th>
+		<th>拼团状态</th>
+		<th>操作</th>
+	</tr>
+	<tr class="alert alert-success">
+		<td>{$team_found_info.id}</td>
+		<td>{$team_found_info.username}</td>
+		<td >团长</td>
+		<td>{$team_found_info.order_id}</td>
+		<td>{$team_found_info.order_sn}</td>
+		<td>{$team_found_info.order_status}</td>
+		<td>{$team_found_info.pay_status}</td>
+		<td>{$team_found_info.status}</td>
+		<td>
+			<a href="" class="btn btn-danger">退款</a>
+			<a href="" class="btn btn-info">发货</a>
+		</td>
+	</tr>
+	{foreach $team_follow_list as $follow}
+	<tr>
+		<td>{$follow.found_id}</td>
+		<td>{$follow.username}</td>
+		<td>团员</td>
+		<td>{$follow.order_id}</td>
+		<td>{$follow.order_sn}</td>
+		<td>{$team_found_info.order_status}</td>
+		<td>{$team_found_info.pay_status}</td>
+		<td>{$team_found_info.status}</td>
+		<td>
+			<a href="" class="btn btn-danger">退款</a>
+			<a href="" class="btn btn-info">发货</a>
+		</td>
+	</tr>
+	{/foreach}
+</table>
+{include file="footer"}

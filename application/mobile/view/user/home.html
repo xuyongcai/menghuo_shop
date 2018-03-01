@@ -1,0 +1,288 @@
+{include file="header"}
+<link rel="stylesheet" href="__MOBILE__/css/home_common.css">
+<link rel="stylesheet" href="__MOBILE__/css/home_index.css">
+
+<style>
+	a:focus,
+	a:hover {
+		text-decoration: none;
+	}
+	
+	#exitout {
+		width: 100px;
+		height: 1.8rem;
+		line-height: 1.8rem;
+		font-size: 1rem;
+		/*padding: 6px;*/
+		color: white;
+		float: right;
+		background: white;
+		border-radius: 20px;
+		right: 3%;
+		position: absolute;
+	}
+</style>
+<div class="vue_box">
+
+	<!-- title头部显示图片 -->
+	<header>
+
+		<div class="title">
+			<a id="exitout" href="{:url('user/logout')}">退出登陆</a>
+
+			<div class="title-img">
+				<a href="javascript:;">
+					<img src="__MOBILE__/images/2.fw.png" alt="">
+				</a>
+				<input type="hidden" name="" value="">
+				<p>{{info.username}}</p>
+			</div>
+
+			<div class="title-hy">
+				<!-- <span class="zf">会员积分</span> -->
+				<p><span class="zf">会员积分:</span> 666 分</p>
+			</div>
+
+		</div>
+	</header>
+
+	<!-- order第一节我的订单 -->
+	<section>
+		<div class="order">
+			<a href="{:url('order/lists')}">
+				<span>我的订单</span>
+				<span>全部<i>&gt;</i></span>
+			</a>
+		</div>
+		<div class="order-mng">
+			<ul>
+				<li>
+					<a href="{:url('order/lists',['type'=>0])}">
+						<i></i>
+						<span>待付款{$o_c_list[0]?$o_c_list[0]['o_num']:0} </span>
+					</a>
+				</li>
+				<li>
+					<a href="{:url('order/lists',['type'=>7])}">
+						<i></i>
+						<span>待成团{$o_c_list[7]?$o_c_list[7]['o_num']:0}</span>
+					</a>
+				</li>
+				<li>
+					<a href="{:url('order/lists',['type'=>1])}">
+						<i></i>
+						<span>待收货{$o_c_list[1]?$o_c_list[1]['o_num']:0} </span>
+					</a>
+				</li>
+				<li>
+					<a href="{:url('order/lists',['type'=>4])}">
+						<i></i>
+						<span>待评价{$o_c_list[4]?$o_c_list[4]['o_num']:0}</span>
+					</a>
+				</li>
+			</ul>
+		</div>
+	</section>
+
+	<!--信息显示-->
+	<section>
+		<b-list-group>
+			<b-list-group-item class="d-flex justify-content-between" v-b-modal.icon_edit>
+				头像<span>  ></span>
+			</b-list-group-item>
+			<b-list-group-item class="d-flex justify-content-between" v-b-modal.name_edit>
+				姓名<span>{{info.username}}  ></span>
+			</b-list-group-item>
+			<b-list-group-item class="d-flex justify-content-between" v-b-modal.sex_edit>
+				性别<span>{{sex_o[info.sex]}}  ></span>
+			</b-list-group-item>
+			<b-list-group-item href="{:url('info/address')}" class="d-flex justify-content-between">
+				收货地址<span>></span>
+			</b-list-group-item>
+		</b-list-group>
+	</section>
+
+	<!--模态框-->
+	<section>
+		<!--编辑头像-->
+		<b-modal id="icon_edit" title="编辑头像" @ok="">
+			<form action="" method="post" enctype="multipart/form-data">
+				<img src="" class="addon" style="display: none;" />
+				<croppa v-model="myCroppa" :width="200" :height="200" initial-image="/vue-croppa/static/500.jpeg" @draw="" @change='show_img()'>
+
+				</croppa>
+			</form>
+		</b-modal>
+
+		<!--编辑姓名-->
+		<b-modal id="name_edit" title="编辑姓名" @ok="change_name">
+			<b-input id="change_name" type="text" :value="info.username" >
+		</b-input>
+		</b-modal>
+
+		<!--编辑性别-->
+		<b-modal id="sex_edit" title="编辑性别" @ok="change_sex">
+			<b-form-select v-model="choise_sex" :options="sex_o" class="mb-3" >
+			</b-form-select>
+		</b-modal>
+	</section>
+
+	<!--猜你喜欢-->
+	<section>
+		<p class="like"><span class="heart">❤</span><span>猜你喜欢</span></p>
+		<div class="container">
+			<div class="row shop-info">
+				<div class="col-xs-6 ">
+					<div class="content">
+						<div class="content-art">
+							<img src="__MOBILE__/images/img1.jpg" alt="">
+							<p class="goods-desc">这是我的商品这是我的商品这是我的商品 这是我的商品这是我的商品这是我的商品 这是我的商品这是我的商品这是我的商品 这是我的商品这是我的商品这是我的商品
+							</p>
+						</div>
+						<p>
+							<span class="price">￥26</span><del>￥70</del>
+							<span class="purchase">1999以抢</span>
+						</p>
+					</div>
+				</div>
+				<div class="col-xs-6 ">
+					<div class="content">
+						<div class="content-art">
+							<img src="__MOBILE__/images/img2.jpg" alt="">
+							<p class="goods-desc">这是我的商品这是我的商品这是我的商品这是我的商品这是我的商品</p>
+						</div>
+						<p>
+							<span class="price">￥26</span><del>￥70</del>
+							<span class="purchase">1999以抢</span>
+						</p>
+					</div>
+				</div>
+			</div>
+			<div class="row shop-info">
+				<div class="col-xs-6 ">
+					<div class="content">
+						<div class="content-art">
+							<img src="__MOBILE__/images/img3.jpg" alt="">
+							<p class="goods-desc">这是我的商品这是我的商品这是我的商品这是我的商品这是我的商品</p>
+						</div>
+						<p>
+							<span class="price">￥26</span><del>￥70</del>
+							<span class="purchase">1999以抢</span>
+						</p>
+					</div>
+				</div>
+				<div class="col-xs-6 shop-info ">
+					<div class="content">
+						<div class="content-art">
+							<img src="__MOBILE__/images/img1.jpg" alt="">
+							<p class="goods-desc">这是我的商品这是我的商品这是我的商品这是我的商品这是我的商品</p>
+						</div>
+						<p>
+							<span class="price">￥26</span><del>￥70</del>
+							<span class="purchase">1999以抢</span>
+						</p>
+					</div>
+				</div>
+			</div>
+			<div class="row shop-info">
+				<div class="col-xs-6 ">
+					<div class="content">
+						<div class="content-art">
+							<img src="__MOBILE__/images/img2.jpg" alt="">
+							<p class="goods-desc">这是我的商品这是我的商品这是我的商品这是我的商品这是我的商品</p>
+						</div>
+						<p>
+							<span class="price">￥26</span><del>￥70</del>
+							<span class="purchase">1999以抢</span>
+						</p>
+					</div>
+				</div>
+				<div class="col-xs-6 ">
+					<div class="content">
+						<div class="content-art">
+							<img src="__MOBILE__/images/img3.jpg" alt="">
+							<p class="goods-desc">这是我的商品这是我的商品这是我的商品这是我的商品这是我的商品</p>
+						</div>
+						<p>
+							<span class="price">￥26</span><del>￥70</del>
+							<span class="purchase">1999以抢</span>
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+	{include file="footer"}
+</div>
+<script type="text/javascript">
+	new Vue({
+		el: '.vue_box',
+		data: {
+			info: JSON.parse('{$info}'),
+			myCroppa: {},	
+			sex_o: {
+				0: '保密',
+				1: '男',
+				2: '女',
+			},
+			choise_sex: JSON.parse('{$info}')['sex'], //初始值用数据库对应
+		},
+		
+		methods: {
+			change_sex: function() {
+				
+				// console.log(this.choise_sex)
+				// ajax更新数据
+				this.$http.post("{:url('info/change_value')}", {
+						key: 'sex',
+						value: this.choise_sex
+					})
+					.then(data => {
+						
+						this.$toast(data.body.msg);
+						if(data.body.code == 1){
+							this.info.sex = this.choise_sex;
+						}
+					});
+			},
+			change_name: function() {
+				// console.log($("#change_name").val())
+				var change_name = $("#change_name").val()
+				if(change_name.length >= 3 && change_name.length <= 6) {
+					this.$http.post("{:url('info/change_value')}", {
+							key: 'username',
+							value: change_name
+						})
+						.then((data) => {
+							this.$toast(data.body.msg);
+							if(data.body.code == 1){
+								this.info.username = change_name;
+							}
+							
+						})
+				} else {
+					alert("名字长度必须为3-6")
+				}
+			},
+			show_img: function() {
+				var file_info = $("#head_img").get(0).files[0]
+
+				// FileReader
+				var fr = new FileReader()
+				console.log(fr)
+
+				// 通过fr.readAsDataURL文件的内容进行读取
+				fr.readAsDataURL(file_info)
+				fr.onload = function() {
+					// DataUrl data? :data:image/jpeg;base64,/9j/4
+					$(".head_img").attr("src", this.result)
+					$(".last_img").attr("src", this.result)
+				}
+
+			},
+
+		}
+	})
+</script>
+
+{include file="footer"}

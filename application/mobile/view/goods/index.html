@@ -1,0 +1,178 @@
+{include file="header"}
+<link rel="stylesheet" type="text/css" href="__MOBILE__/css/goods_index.css"/>
+<style type="text/css">
+
+	#nav-scroller{
+		position:relative; 
+		overflow-y:scroll;
+		height: 85vh;
+		padding-top: 0px;
+		padding-bottom: 0px;
+	}
+	
+	#xq {
+		overflow: hidden;
+		width: 100%;
+	}
+	
+</style>
+
+<div id="container" >
+	<b-nav pills v-b-scrollspy:nav-scroller>
+		<b-nav-item href="#sp" @click="scrollIntoView">商品</b-nav-item>
+		<b-nav-item href="#pj" @click="scrollIntoView">评价</b-nav-item>
+		<b-nav-item href="#xq" @click="scrollIntoView">详情</b-nav-item>
+	</b-nav>
+	<b-card-body ref="content" id="nav-scroller" style="">
+		<div id="sp">
+			<mt-swipe :auto="4000">
+				<mt-swipe-item v-for="goods_thumb in info_json['goods_thumbs']">
+					<img :src="'__ADMIN__/' + goods_thumb" alt="">
+				</mt-swipe-item>
+			</mt-swipe>
+			
+			<!-- 商品信息 -->
+			<div class="info">
+				<span class="name">{{info_json.goods_name}}</span>
+				<span class="price">￥{{info_json.goods_price}}</span>
+			</div>
+			
+				<!-- 辅助信息 -->
+			<b-list-group>
+				<b-list-group-item class="d-flex justify-content-between align-items-center">
+					<span>所在地区</span>
+					<span>北京市朝阳区</span>
+					<span>></span>
+				</b-list-group-item>
+				<b-list-group-item class="d-flex justify-content-between align-items-center">
+					<span>运费信息</span>
+					<span>包邮</span>
+					<span>></span>
+				</b-list-group-item>
+				<b-list-group-item class="d-flex justify-content-between align-items-center">
+					<span>服务</span>
+					<span>提供包邮和售后服务</span>
+					<span>></span>
+				</b-list-group-item>
+				<b-list-group-item class="d-flex justify-content-between align-items-center">
+					<span>重量</span>
+					<span>1KG</span>
+					<span>></span>
+				</b-list-group-item>
+				<b-list-group-item class="d-flex justify-content-between align-items-center">
+					<span>好评率</span>
+					<span>99.99%</span>
+					<span>></span>
+				</b-list-group-item>
+			</b-list-group>			
+		</div>
+
+		<div id="pj">
+			<div class="info_title">
+				<span>评论</span>
+			</div>
+
+			<div class="pj_list" v-for="comment in comment_list">
+				<div class="top">
+					<div class="left">
+						<img src="http://demo5.tp-shop.cn/template/mobile/rainbow/static/images/user68.jpg" class="thumb">
+						<span>{{comment.username}}</span>
+					</div>
+					<div class="right">
+						<span>{{comment.update_time}}</span>
+					</div>
+				</div>
+				<div class="txt">
+					<div class="stars">
+						<img 
+							src="http://apispec.tp-shop.cn/template/mobile/rainbow/static/images/comment-star.png" 
+							v-for="n in comment.quality_pf" :class="n==0 ?'no_star':''">
+					</div>
+					<div class="c">
+						<span>{{comment.comment_text}}</span>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div id="xq">
+			<div class="info_title">
+				<span>详情</span>
+			</div>
+			<div v-html="goods_description"></div>
+		</div>
+	</b-card-body>
+
+	<div class="cartBox">
+		<img @click="addCart" src="__MOBILE__/images/t01f1af207334eb0e7f.png" style="width: 100%">
+	</div>
+	<!-- 底部 -->
+	<div class="bottom">
+		<a style="color: #FFFFFF;" class="addCart" href="{:url('cart/index')}" class="btn btn-danger">购物车</a>
+		<a style="color: #FFFFFF;" class="immedBuy" :href="'{:url('cart/index')}?goods_id=' + info_json['id']" class="btn btn-info">立即购买</a>
+	</div>
+	
+</div>
+
+<script type="text/javascript">
+	new Vue({
+		el:"#container",
+		data:{
+			goods_description:'',
+			info_json:{$info_json},
+			comment_list:{$comment_list},
+
+		},
+		created(){
+   			 this.$root.$on('bv::scrollspy::activate', this.onActivate)
+   	
+		},
+		methods:{
+			// 获取详情
+			getInfo(){
+				this.$http.post('{:url("getInfo")}',{id:this.info_json.id})
+	      			.then((rtnD)=>{
+	      				this.goods_description = rtnD.body.info
+	      		})
+	      	},
+			onActivate (target) {
+				// console.log(target)
+
+				if (target=='#pj') {
+					this.getInfo()
+				}
+		    },
+			scrollIntoView (evt) {
+
+		     	evt.preventDefault()
+		      	const href = evt.target.getAttribute('href')
+
+		      	if (href=='#xq') {
+			      	this.getInfo()
+		      	}
+
+		      	const el = href ? document.querySelector(href) : null
+		      	
+		      	if (el) {
+		        	this.$refs.content.scrollTop = el.offsetTop
+		      	}
+		    },
+		    // 加入购物车
+		    addCart(){
+		    	// console.log(this.info_json)
+		    	this.$http.post("{:url('addCart')}",{
+		    		goods_info:JSON.stringify(this.info_json)
+		    	})
+		    	.then((rtnD)=>{
+		    		this.$toast('加入购物车成功！请继续')
+		    	})
+		    }
+		}
+
+	})
+
+
+</script>
+
+</body>
+</html>

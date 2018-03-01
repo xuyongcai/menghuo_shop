@@ -1,0 +1,45 @@
+  <!-- 配置文件 -->  
+  <script type="text/javascript" src="__ADMIN_PUBLIC__/static/library/ueditor/ueditor.config.js"></script>
+  <!-- 编辑器源码文件 -->  
+  <script type="text/javascript" src="__ADMIN_PUBLIC__/static/library/ueditor/ueditor.all.min.js"></script>
+
+
+<template id="myBjq">
+	<div>
+		<!-- 加载编辑器的容器 -->  
+  		<textarea  id="bjq_textarea"  >{{info}}</textarea>
+
+		<!-- <slot>插槽</slot> -->
+	</div>
+</template>
+
+
+  <!-- 自定义组件的脚本 -->  
+<script type="text/javascript">
+	Vue.component('my-bjq', {
+	    template: '#myBjq',
+	    data(){
+	    	return{
+	    		bjq_content:'',
+	    		child_msg:'',
+	    	}
+	    },
+	    props:['info'],
+	    mounted(){
+	    	// 实例化编辑器 
+	   		var ue = UE.getEditor('bjq_textarea');
+
+	   		ue.on('keyup', ()=> {
+		    	// ue.getContent() 百度编辑器对象返回编辑器内容的方法
+		    	this.$emit('input',ue.getContent())  
+		    })
+	   		
+	    },
+	    destroyed(){
+	    	//很重要，每一次要摧毁
+			UE.getEditor('bjq_textarea').destroy()
+		}
+
+	})
+    
+</script>

@@ -1,0 +1,82 @@
+{include file="header"}
+<link rel="stylesheet" type="text/css" href="__MOBILE__/css/common.css">
+<link rel="stylesheet" type="text/css" href="__MOBILE__/css/login.css">
+<script src="__ADMIN_PUBLIC__/static/library/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+
+<header class="login_header">
+	<span style="position: absolute;">
+		<a href="{:url('index/index')}"><img src="__MOBILE__/images/login_1_02.jpg"/></a>	
+	</span>
+	<img src="__MOBILE__/images/login-1_02.jpg"/>
+</header>
+
+<div class="vue_box" id="login_content">
+	<b-container>
+		<b-form>
+			<b-form-group>
+				<div class="login_yh_box">
+					<div id="login_yh_pic"><a href=""><img src="__MOBILE__/images/111.jpg" alt="" /></a></div>
+				<b-form-input v-model="user.username" placeholder="请输入用户名称"></b-form-input>
+				</div>
+
+			</b-form-group>
+			<b-form-group>
+				<div class="login_mm_box">
+					<div id="login_mm_pic"><img src="__MOBILE__/images/login-1_08.jpg" alt="" /></div>
+					<b-form-input v-model="user.password" type="password" placeholder="请输入用户密码">
+					</b-form-input>
+				</div>
+			</b-form-group>
+			<b-button class="login_btn" variant="primary" @click="doLogin">登录</b-button>
+			<b-alert :show="msg" :variant="variant">{{msg}}</b-alert>
+		</b-form>
+
+		<div class="login_zw">
+			<span class="login_zw_l">
+				<a href="{:url('user/register')}" style="color: #666; text-decoration: none;">快速注册</a>
+				
+			</span>
+			<span class="login_zw_r">忘记密码？</span>
+		</div>
+		<div class="login_fx">
+			<img src="__MOBILE__/images/login-1_10.jpg" alt="" />
+		</div>
+	</b-container>
+</div>
+
+
+<script type="text/javascript">
+	new Vue({
+		el:'.vue_box',
+		data:{
+			user:{
+				username:'',
+				password:'',
+			},
+			variant:"success",
+			msg:false,
+		},
+		methods:{
+			doLogin:function () {
+				// promise
+				this.$http.post("{:url('doLogin')}",{
+					username:this.user.username,
+					password:this.user.password,
+				}).then((rtnD)=>{
+					
+					this.msg = rtnD.body.msg
+					// code=0是后台错误的状态
+					if(rtnD.body.code==0){
+						this.variant = "danger"
+					}else{
+						this.variant = "success"
+						location.href = rtnD.body.url
+					}
+					
+				})
+			}
+		}
+	})
+</script>
+
+{include file="footer"}

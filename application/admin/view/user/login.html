@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>后台登陆</title>
+	<link type="text/css" rel="stylesheet" href="__ADMIN_PUBLIC__/static/library/bootstrap/bootstrap.min.css"/>
+
+	<script src="__ADMIN_PUBLIC__/static/library/jquery.min.js" ></script>
+	<script src="__ADMIN_PUBLIC__/static/library/bootstrap/bootstrap.min.js" type="text/javascript"></script>
+ 	<script src="__ADMIN_PUBLIC__/static/library/vue/vue.min.js"></script>
+
+ 	<!-- js 补丁 -->
+	<script src="__ADMIN_PUBLIC__/static/library/polyfill.min.js"></script>
+	<script src="__ADMIN_PUBLIC__/static/library/bootstrap/bootstrap-vue.min.js"></script>
+
+	<script type="text/javascript" src="__ADMIN_PUBLIC__/static/library/vue/vue-resource.min.js"></script>
+
+	<link rel="stylesheet" type="text/css" href="__ADMIN_PUBLIC__/static/admin/css/index.css">
+</head>
+<body>
+	<div class="container">
+	<h3>管理员登录</h3>
+	<p style="text-align: right;margin: 0;"><a target="_blank" href="{:url('user/register')}">注册账号</a></p>
+	<b-form id="form">
+		<b-form-group label-for="username" label="请输入用户名" description="你的管理员账号">
+			<b-form-input id="username" name="username" type="text" v-model="user.username"></b-form-input>
+		</b-form-group>
+		<b-form-group label-for="password" label="请输入密码" description="密码别写错">
+			<b-form-input id="password" name="password" type="password" v-model="user.password"></b-form-input>
+		</b-form-group>
+		<b-form-group label-for="captcha" label="请输入验证码">
+			<b-form-input id="captcha" name="captcha" type="text" v-model="user.captcha"></b-form-input>
+		</b-form-group>
+		<b-form-group>
+			<img :src="captcha_src" @click="captcha_change()"/>
+		</b-form-group>
+		<b-alert :show="warning" variant="warning">{{warning}}</b-alert>
+		<b-button variant="primary" @click="submit()">登陆</b-button>
+      	<b-button type="reset" variant="danger">重置</b-button>
+      	
+	</b-form>
+		
+</div>
+
+</body>
+</html>
+<script type="text/javascript">
+	new Vue({
+		el: '.container',
+		
+		data:{
+			user:{
+				username:'',
+				password:'',
+				captcha:'',
+			},
+			captcha_src: "{:captcha_src()}",
+			warning:false,
+		},
+		
+		methods:{
+			submit: function(){
+				this.$http.post("{:url('user/doLogin')}", {
+					username: this.user.username,
+					password: this.user.password,
+					captcha: this.user.captcha
+				}).then(data=>{
+					data = data["body"];
+					if(data["code"] == "1"){
+						location.href = data["url"];
+					}else{
+						this.warning = data["msg"];
+						this.captcha_change();
+					}
+				});
+			},
+			
+			captcha_change: function(){
+				this.captcha_src += "?code=" + Math.random(100000);
+			}
+		}
+	})
+</script>

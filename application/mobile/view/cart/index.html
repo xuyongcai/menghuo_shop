@@ -1,0 +1,346 @@
+{include file="header"}
+<link rel="stylesheet" type="text/css" href="__MOBILE__/css/cart.css"/>
+<link rel="stylesheet" type="text/css" href="__MOBILE__/css/shouhuo.css">
+<style type="text/css">
+	/*.vue_box{
+		/*padding: 20px*/
+	/*}
+	.goods_num{
+		width: 25px;
+		border: 1px solid #666;
+		text-align: center;
+		margin: 0 10px;
+
+	}
+	ul{
+		margin: 0;
+		padding: 0;
+	}
+	ul li{
+		list-style: none;
+	}*/
+	.add_addr{
+		padding: 1rem !important;
+	}
+</style>
+<div class="vue_box">
+	<header class="cart_header" v-show="!is_confirm">
+		<div class="catr_fh"><img src="__MOBILE__/images/cart_1_02.jpg"/></div>
+		<div class="cart_h6"><h6>购物车</h6></div>
+	</header>
+
+	<div class="container" >
+		<div class="cart_box" v-if="!is_confirm">
+			<ul>
+		 		<li class="row cart_list" v-for="(cart,index) in cart_list">
+					<div class="col-1">
+						<input type="checkbox" class="cart_list_ck" :value="cart" v-model="selected_list">
+					</div>
+					<div class="col-4">
+						<div class="cart_pic">
+							<img :src="cart.goods_thumb" style="width: 100%" alt="">
+						</div>
+					</div>
+					<div class="col-4 cart_content">
+						<h3 class="row">
+						 	<span class="col-12"><h6 style="font-size: 0.8rem;">{{cart.goods_name}}</h6></span>
+							<span style="color: red; font-size: 0.8rem;">￥{{cart.goods_price}}</span>
+						 	
+						</h3>
+					</div>
+					<div class="col-3 cart_content_right">
+						<span @click="reduceNum(cart)">
+							<input type="button" name="" id="" value="-" /></span>
+						<input class="goods_num" type="text"  
+							v-model="cart.goods_num" @input="keyNum(cart)">
+						<span @click="addNum(cart)">
+							<input type="button" name="" id="" value="+" /></span>
+						<span class="col-2 cart_del"   @click="del(cart)" >删除</span>
+					</div>
+		 		</li>
+		 	</ul>
+		 	
+			<div class="cart_footer">
+				<div class="cart_footer_left">
+					统计：总共有{{total_num}}件商品 ，已选择{{selected_num}}件 <br />
+			 		总金额：{{total_price}}元
+				</div>
+		 		<div class="cart_footer_right">
+		 			<input type="button"  @click="doOrder" value="确认"><br />
+		 		</div>
+			</div>
+		</div>
+
+		<div  class="confirm_box" v-if="is_confirm && !is_add_addr">
+			<header class="sh_header">
+				<img src="__MOBILE__/images/sh_1_02.jpg"/>
+				<span>收货地址</span>
+			</header>
+			<h2 style="margin-bottom: 1rem;">
+				<b-button  @click="addAddress"  variant="primary">添加收货地址</b-button>
+			</h2>
+		
+			<ul v-if="!is_adr_list">
+				<li>
+					当前地址：{{default_address.address}}
+				</li>
+				<li>
+					<b-button variant="info" @click="getAddress()">选择地址</b-button>
+				</li>
+			</ul>
+			<ul v-if="is_adr_list">
+				<li v-for="adr_info in address_list">
+					<label>
+						<input type="checkbox" @click="setDefaultAddress(adr_info)">{{adr_info.address}}
+					</label>
+				</li>
+			</ul>
+	
+			<ul>
+				<li v-for="ck_info in selected_list">
+					<!-- {{ck_info.active_type}} -->
+					<h5>商品：{{ck_info.goods_name}}</h5>
+					<p v-show="!ck_info.active_type">
+						价格：{{ck_info.goods_price}} x {{ck_info.goods_num}}
+					</p>
+					<p v-show="ck_info.active_type">
+						价格：{{ck_info.team_price}} x {{ck_info.goods_num}}
+					</p>
+				</li>
+			</ul>
+			<div>
+				<p>总数量：{{selected_num}}</p>
+				<p>邮费：0</p>
+				<p>总金额：{{total_price}}</p>
+			</div>
+			
+				
+			<b-button id="xiadan_btn" @click="goOrder()"  variant="primary">先下单，后付款</b-button>
+			<b-button   @click="is_confirm=false" v-if="!is_buy_directly">返回购物车</b-button>
+			
+		</div>
+
+		<div class="confirm_box add_addr" v-if="is_add_addr">
+			<b-form>
+				<b-form-group label="姓名" >
+					<b-form-input v-model="add_address.username">
+				</b-form-group>
+				<b-form-group label="电话">
+					<b-form-input  v-model="add_address.phone">
+				</b-form-group>
+				<b-form-group label="地址">
+					<b-form-input  v-model="add_address.address">
+				</b-form-group>
+				<b-button variant="primary" @click="addAddressSave()">添加地址</b-button>
+				<b-button variant="primary"  @click="is_add_addr=false"  v-if="!is_buy_directly">返回</b-button>
+			</b-form>
+		</div>
+
+	</div>
+
+</div>
+
+<script type="text/javascript">
+	new Vue({
+		el:'.vue_box',
+		data:{
+			cart_list:null,
+			selected_list:[], //选择的列表
+			is_login:'{$is_login}', //登录状态
+			is_confirm:false, //是否确认页面
+			address_list:[],//该用户的所有收货地址
+			default_address:[],//默认收货地址 
+			is_adr_list:false,//收货地址显示/隐藏
+			is_add_addr:false,//添加地址显示/隐藏
+			is_buy_directly:false, //是否直接购买，默认false不是直接购买
+
+			add_address:{
+				username:'',
+				phone:'',
+				address:''
+			}
+		},
+		created(){
+   			var cart_json = '{$cart_list}'
+
+   			if (cart_json) {
+   				this.cart_list = JSON.parse(cart_json)
+   				this.cart_list.forEach((ele,index)=>{
+
+            		ele.goods_thumb = "__ADMIN__"+ele.goods_thumb
+            	
+            	})
+			}
+
+			var goods_info = JSON.parse('{$goods_info}')
+   		 
+   			if (goods_info.id>0) {
+   				this.selected_list = [goods_info]
+   				// this.cart_list = [goods_info]
+
+   				this.is_confirm = true
+   				this.is_buy_directly = true
+   				this.doOrder()
+
+   			}
+   			// console.log(this.cart_list)
+		},
+		computed:{
+			total_num(){
+				console.log(this.cart_list)
+				let t_num = 0
+				this.cart_list.forEach((item)=>{
+					t_num +=Number(item.goods_num)
+				})
+				return t_num
+			},
+			selected_num(){
+				let t_num = 0;
+				this.selected_list.forEach((item)=>{
+					t_num +=Number(item.goods_num)
+				})
+				return t_num
+			},
+			total_price(){
+				let t_price = 0;
+				this.selected_list.forEach((item)=>{
+					t_price +=Number(item.goods_price)*Number(item.goods_num)
+				})
+				return t_price
+			}
+		},
+		methods:{
+			doOrder(){
+		 		//结算(确认)
+	 			// 登录状态
+			 	if (this.is_login) {
+			 		//是否选中商品
+			 		if (this.selected_list.length>0) {
+				 		 // 获取收货地址
+				 		 this.$http.post("{:url('getDefaultAddress')}")
+				 		 	.then((rtnD)=>{
+				 		 		this.default_address  = rtnD.body
+				 		 	})
+				 		 this.is_confirm = true 
+			 		}else{
+			 			this.$toast("没有选择商品")
+			 		}
+			 	}else{
+			 		this.$toast("请先登录，再来！")
+			 		location.href = "{:url('user/login')}"
+			 	}
+			 
+			},
+		 	addNum(info){
+		 		info.goods_num++
+			 	this.$http.post('{:url("changeNum")}',{
+
+	 					id:info.id,
+	 					goods_num:info.goods_num
+	 				})
+				 	.then((rtnD)=>{
+
+		 				info.goods_num = rtnD.body.data.goods_num
+			 			
+			 		})
+		 	},
+		 	reduceNum(info){
+		 		info.goods_num--
+			 	this.$http.post('{:url("changeNum")}',{
+
+	 					id:info.id,
+	 					goods_num:info.goods_num
+	 				})
+			 		.then((rtnD)=>{
+
+		 				info.goods_num = rtnD.body.data.goods_num
+			 		
+			 		})
+		 	},
+		 	keyNum(info){
+		 		// console.log(2)
+			 	this.$http.post('{:url("changeNum")}',{
+
+	 					id:info.id,
+	 					goods_num:info.goods_num
+	 				})
+			 		.then((rtnD)=>{
+			 			// console.log(rtnD)
+		 				info.goods_num = rtnD.body.data.goods_num
+			 			
+			 		})
+		 	},
+		 	del(item){
+		 		//删除购物车商品
+				this.$http.post("{:url('delCart')}",{
+					 	 	id:item.id
+					 	 })
+			 		 	.then((rtnD)=>{
+
+		 		 		 	var index = this.cart_list.indexOf(item)
+						 	this.cart_list.splice(index,1);
+			 		 	})
+			},
+		 	
+		 	goOrder(){
+			 	//下单
+			 	// console.log(this.selected_list)
+			 	this.$http.post("{:url('order/add')}",{
+
+			 		selected_list:JSON.stringify(this.selected_list),
+			 		default_address:JSON.stringify(this.default_address),
+			 		is_buy_directly: this.$is_buy_directly
+
+			 	}).then((rtnD)=>{
+			 		this.selected_list.forEach((item)=>{
+						var index = this.cart_list.indexOf(item)
+						 this.cart_list.splice(index,1);
+						 is_buy_directly:this.is_buy_directly
+					})
+
+			 		this.is_confirm = false 
+
+			 		//如立即购买，清空下
+			 		if(this.total_num==0){
+			 			this.selected_list = [];
+			 		}
+			 	})
+		 	},
+			getAddress(){
+			 	 this.$http.post("{:url('getAddressList')}")
+			 		 	.then((rtnD)=>{
+			 		 		this.address_list  = rtnD.body
+			 		 		this.is_adr_list = true
+			 		 	})
+			 },
+			 addAddress(){
+			 	this.add_address = { username:'', phone:'', address:'' };
+			 	this.is_add_addr = true;
+			 },
+			 addAddressSave(){
+			 	
+			 	this.$http.post("{:url('addAddress')}",{
+			 			username:this.add_address.username,
+			 			phone:this.add_address.phone,
+			 			address:this.add_address.address,
+			 		})
+		 		 	.then((rtnD)=>{
+		 		 		this.is_add_addr = false;
+		 		 	})
+			 },
+			 setDefaultAddress(adr_info){
+ 				this.$http.post("{:url('setDefaultAddress')}",{
+					 	 	id:adr_info.id
+					 	 })
+			 		 	.then((rtnD)=>{
+			 		 		 	this.default_address = adr_info
+ 		 						this.is_adr_list = false
+			 		 	})
+			 },
+			
+	 	}
+	})
+</script>
+
+</body>
+</html>

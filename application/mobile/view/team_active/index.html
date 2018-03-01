@@ -1,0 +1,235 @@
+{include file="header"}
+<link rel="stylesheet" type="text/css" href="__MOBILE__/css/team_active_index.css"/>
+<link rel="stylesheet" type="text/css" href="__MOBILE__/css/detail.css">
+
+<style type="text/css">
+	#nav-scroller{
+		position:relative; 
+		overflow-y:scroll;
+		height: 80vh;
+		padding-top: 0px;
+		padding-bottom: 0px;
+	}
+	
+	.mint-swipe{height: 250px;padding: 10px;}
+	.mint-swipe-items-wrap img{width: 100%;}
+	
+	.info_foot{position: fixed; width: 100%; bottom: 0;}
+	.info_foot li{  width: 20%;float: left;}
+	ul li{list-style: none;}
+	.title{
+		margin-top: 10px;
+	}
+	.goods_price{
+		text-decoration: line-through;
+	}
+	.team_price{
+		color: red;
+		margin-bottom: 0;
+	}
+	
+	#xq {
+		overflow: hidden;
+		width: 100%;
+	}
+
+</style>
+<div class="vue_box">
+	<b-nav pills   v-b-scrollspy:nav-scroller>
+		<b-nav-item href="#sp" @click="scrollIntoView">商品</b-nav-item>
+		<b-nav-item href="#pj" @click="scrollIntoView">评价</b-nav-item>
+		<b-nav-item href="#xq" @click="scrollIntoView">详情</b-nav-item>
+	</b-nav>
+
+	<b-card-body ref="content" id="nav-scroller">
+		<mt-swipe :auto="4000" id="sp" >
+			<mt-swipe-item v-for="img_info in team_active['goods_thumbs']">
+				<img :src="'__ADMIN__/' + img_info" alt="">
+			</mt-swipe-item>
+		</mt-swipe>
+
+		<!-- 商品信息 -->
+		<div class="info">
+			<span class="name">{{team_active.team_name}}</span>
+			<span class="price">拼团价：￥{{team_active.team_price}}</span>
+			<span>原价：￥{{team_active.goods_price}}</span>
+			<span>拼团人数：{{team_active.people_num}}</span>
+			<span>已拼团：{{team_active.sales_sum}}</span>
+			<span>当前库存：{{team_active.goods_num}}</span>
+		</div>
+
+		<div style="padding: 20px;">
+			<h6 style="text-align: center;font-size: 18px;font-weight: bold;" >
+				{{found_list.length}}人在开团，可直接参与
+			</h6>
+			<ul v-for="found in found_list" class="list-group" style="list-style: none;">
+				<li>团长: {{found['username']}}</li>
+				<li>还需要: {{found['need_num']}}人可成团</li>
+				<li>开始时间： {{found['create_time']}}</li>
+				<li>
+					<p v-show="found['need_num'] == 0">已满人!</p>
+					<a v-show="found['user_id'] == user_id" 
+						:href="'{:url('team_active/index')}?team_id=' + team_active.id"> 查看我的团</a>
+				
+					<a v-show="found['user_id'] != user_id && !is_follow
+						 && !is_found && found['need_num'] > 0" 
+						:href="'{:url('cart/index')}?active_type=1&active_id=' + team_active.id + '&goods_id=' + team_active.goods_id + '&found_id=' + found.id" class="btn btn-success">去参团</a>
+					
+					<a v-show="(is_follow || is_found) && found['user_id'] != user_id"
+						 href="{:url('user/home')}" class="btn btn-info">已有团,回个人中心</a>
+				</li>
+			</ul>
+		</div>
+
+		<b-list-group>
+ 			<b-list-group-item class="d-flex justify-content-between align-items-center">
+		    	<span>
+		    		<img src="__MOBILE__/images/icon_03.gif" alt="">全场包邮
+		    	</span>
+		    	<span>
+		    	<img src="__MOBILE__/images/icon_03.gif" alt="">24小时发货
+				</span>
+		   	 	<span>
+		    		<img src="__MOBILE__/images/icon_03.gif" alt="">假一赔十
+				</span>
+		    	<span>></span>
+		  	</b-list-group-item>
+		  	<b-list-group-item class="d-flex justify-content-between align-items-center">
+		    	<span>所在地区</span>
+		    	<span>北京市朝阳区></span>
+		 
+		  	</b-list-group-item>
+		  	<b-list-group-item class="d-flex justify-content-between align-items-center">
+		    	<span>运费信息</span>
+		    	<span>包邮></span>
+	
+		  	</b-list-group-item>
+		  	<b-list-group-item class="d-flex justify-content-between align-items-center">
+		    	<span>服务</span>
+		    	<span>售后服务></span>
+		 
+		  	</b-list-group-item>
+		  	<b-list-group-item class="d-flex justify-content-between align-items-center">
+		    	<span>重量</span>
+		    	<span>1KG></span>
+
+		  	</b-list-group-item>
+		  	<b-list-group-item class="d-flex justify-content-between align-items-center">
+		    	<span>好评率</span>
+		    	<span>99.99%></span>
+		
+		  	</b-list-group-item>
+		</b-list-group>
+
+		<div id="pj">
+			<div class="info_title">
+				<span>评论</span>
+			</div>
+			<div class="pj_list" v-for="comment in comment_list">
+				<div class="top">
+					<div class="left">
+						<img src="http://demo5.tp-shop.cn/template/mobile/rainbow/static/images/user68.jpg" class="thumb">
+						<span>{{comment.user_id}}</span>
+					</div>
+					<div class="right">
+						<span>{{comment.create_time}}</span>
+					</div>
+				</div>
+				<div class="txt">
+					<div class="stars">
+						<img 
+							src="http://apispec.tp-shop.cn/template/mobile/rainbow/static/images/comment-star.png" 
+							v-for="n in comment.quality_pf" :class="n==0 ?'no_star':''">
+					</div>
+					<div class="c">
+						<span>{{comment.comment_text}}</span>
+					</div>
+				</div>
+			</div>
+		
+		</div>
+		
+		<div id="xq">
+			<div class="info_title">
+				<span>详情</span>
+			</div>
+			<div v-html="goods_xq"></div>
+		</div>
+		
+	</b-card-body>
+
+	<div class="bottom">
+		<span class=" buy addCart">
+			<a href="{:url('index/index')}">首页</a>
+		</span>		
+		<span class=" buy immedBuy">
+			<a :href="'{:url('cart/index')}?goods_id=' + team_active.goods_id">
+					立即购买￥{{team_active.team_price}}
+				</a>
+		</span>
+		<span class="buy opengroup">
+			{if $is_found == 'true' || $is_follow == 'true'}
+				<a :href="'{:url('team_active/index')}?team_id=' + team_active.id">
+					查看我的团
+				</a>
+				{else if $is_follow != 'false'}
+				<a :href="'{:url('cart/index')}?active_type=1&active_id=' + team_active.id + '&goods_id=' + team_active.goods_id">
+					一键开团{{team_active.team_price}}
+				</a>
+				{/if}
+		</span>
+	</div>
+
+
+		
+
+</div>
+
+<script type="text/javascript">
+	new Vue({
+		el:'.vue_box',
+		data:{
+			goods_xq:'',//商品详情
+			comment_list:{$commont_list},
+			team_active:{$team_active},
+			found_list: {$found_list},
+			user_id: {$user_id},
+			is_found: {$is_found},
+			is_follow: {$is_follow},
+		},
+		created(){
+   			 this.$root.$on('bv::scrollspy::activate', this.onActivate)
+   			 console.log(this.comment_list)
+		},
+		methods:{
+			// 获取详情
+			getInfo(){
+					this.$http.post('{:url("goods/getInfo")}',{id:this.team_active.goods_id})
+			      		.then((rtnD)=>{
+			      			this.goods_xq = rtnD.body.info
+			      		})
+	      	},
+			onActivate(target){
+				// console.log(target)
+				 if (target=='#pj') {
+			      	this.getInfo()
+			      }
+			},
+			scrollIntoView(evt){
+				 evt.preventDefault()
+			      const href = evt.target.getAttribute('href')
+			      if (href=='#xq') {
+			      	this.getInfo()
+			      }
+			      const el = href ? document.querySelector(href) : null
+			      if (el) {
+			        this.$refs.content.scrollTop = el.offsetTop
+			      }
+			}
+			
+		}
+	})
+</script>
+
+</body>
+</html>

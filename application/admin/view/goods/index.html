@@ -1,0 +1,297 @@
+{include file="header"}
+
+	<style type="text/css">
+	.add_box{ 
+	    width: 100%;
+	    border: 1px solid #ccc;
+	    height: 100%;
+	    padding: 10px;}
+		.fade-enter-active{
+			 transition: all 1s;
+		}
+		.fade-enter{
+			opacity: 0;
+		}
+		.form-control.is-valid{border-color:#ccc !important;}
+	</style>
+
+	<div class="vue_box">
+		<transition name="fade">
+			<div class="data_list_box" v-if="!is_add && !is_edit">
+				<h2>商品列表</h2>
+				<b-button variant="primary" @click="add()">添加商品</b-button>
+
+				<b-table :items="data_list" hover :fields="fields">
+					<template slot="manger" slot-scope="row">
+						<b-button @click="edit(row.item)" variant="primary" >编辑</b-button>
+						<b-button @click="del(row.item.id,row.index)" variant="danger" >删除</b-button>
+					</template>
+					<template slot="parent_id" slot-scope="row">
+						66
+					</template>
+					<template slot="status" slot-scope="row">
+						{{row.item.status==1?'显示':'隐藏'}}
+					</template>
+				</b-table>
+	 
+
+				<b-pagination size="md" :total-rows="total_rows" v-model="currentPage" :per-page="per_page">
+	    		</b-pagination>
+			</div>
+		</transition>
+		
+		<transition name="fade">
+			<div class="add_box" v-if="is_add || is_edit">
+				<h2 >{{form_type}}表单</h2>
+
+				<b-form-group label="商品名称" >
+					<b-form-input   v-model="goods_name"></b-form-input>
+				</b-form-group>
+
+				<b-form-group label="商品价格" >
+					<b-form-input   v-model="goods_price"></b-form-input>
+				</b-form-group>
+
+
+				<b-form-group label="商品缩略图" >
+					<!-- <div v-if="goods_thumb_prev">
+						<img :src="goods_thumb_prev"  style="height: 180px"></div>
+					<b-form-file   v-model="goods_thumb"  placeholder="请上传一张图片" @input="choise_thumb"></b-form-file> -->
+					<my-multi-upload v-model="goods_thumb_prev" :preview_img="goods_thumb_prev"></my-multi-upload>
+
+					<!-- <my-upload v-model="goods_thumb_prev" :src="goods_thumb_prev"></my-upload> -->
+					
+				</b-form-group>
+
+				<b-form-group label="所属分类" >
+					<select v-model="category_id">
+						<option>请选择</option>
+						<optgroup v-for="mn in category_tree" :label="mn.name"> 
+
+							<option v-for="child in mn.child_menu" :value="child.id" v-model="category_id">
+								{{child.name}}
+							</option>
+						
+						
+						</optgroup>
+					</select>
+				</b-form-group>
+
+				<b-form-group label="商品描述" >
+ 
+					<my-bjq :info="goods_description" @parent_event="tofu" v-model="goods_description"  msg="sss">
+						
+						<div>我来了</div>
+					</my-bjq>
+				</b-form-group>
+
+				<b-button @click="is_add?save():update()" variant="primary" :disabled=" name==null">{{form_type}}商品</b-button>
+				<b-button @click="is_add=is_edit=false" variant="info">返回</b-button>
+			</div>
+		</transition>
+
+	</div>
+
+<!-- 引入自定义百度编辑器组件 -->
+{include file="components/my_bjq"}
+
+<!-- 引入自定义的图片上传组件 -->
+{include file="components/my_multi_upload"}
+
+
+
+<script type="text/javascript">
+	new Vue({
+		el:'.vue_box',
+		data:{
+			data_list:[],//数据列表
+			category_tree:[],//树状分类
+			goods_name:null,//商品名称
+			goods_price:null,//商品价格
+			goods_thumb:null,//商品缩略图
+			goods_thumb_prev:[],//商品预览图
+			goods_description:null,//商品描述
+			category_id:'',//分类id
+			edit_info:null,//编辑信息
+			is_add:false,//是否添加
+			is_edit:false,//是否编辑
+			fields:[
+				{
+					key:'goods_name',
+					label:'商品名称',
+					sortable: false
+				},
+				{
+					key:'goods_price',
+					label:'商品价格'
+				},
+				{
+					key:'category_name',
+					label:'商品分类'
+				},
+				{
+					key:'manger',
+					label:'操作'
+				}
+			],
+			per_page:0,//每一页显示的数量
+			total_rows:0,//总有多少条记录
+			currentPage:1,//当前是第一页
+
+		},
+		watch:{
+			currentPage:function (val) {
+				// tp5分页，直接传固定参数page=1
+				this.$http.get("{:url('getLists')}",{params:{page:val}})
+					.then((rtnD)=>{
+						this.data_list = rtnD.body.data
+					})
+			}
+		},
+		created(){
+
+			this.$http.post("{:url('getCategory')}")
+				.then((rtnD)=>{
+					// console.log(rtnD)
+					this.category_tree  = rtnD.body
+				})
+				.then(()=>{
+					var list = JSON.parse('{$info}')
+					// console.log(list)
+					if (list) {
+						this.data_list = list.data
+						this.total_rows = list.total
+						this.per_page = list.per_page
+						this.currentPage = list.current_page
+						// console.log(this.data_list[0].goods_thumb)
+					}
+				})			
+		},
+		computed:{
+			form_type(){
+				if (this.is_add) {
+					return '添加'
+				}else if(this.is_edit) {
+					return '编辑'
+				}
+				return ''
+			},
+		},
+		methods:{
+			choise_thumb:function(){
+				// FileReader
+				var fr = new FileReader()
+				// 通过fr.readAsDataURL文件的内容进行读取
+				fr.readAsDataURL(this.goods_thumb)
+				var that = this
+				fr.onload = function () {
+					// DataUrl data? :data:image/jpeg;base64,/9j/4
+					that.goods_thumb_prev = this.result
+					// console.log(this.result)
+				}
+			},
+			clear:function () {
+			 	this.goods_name = null
+			 	this.goods_price=null;//商品价格
+				this.goods_thumb_prev=[];//商品预览图
+				this.goods_description=null;//商品描述
+				this.category_id = ''
+			},
+			add:function () {
+				this.is_add = true
+				this.clear()
+			},
+			save:function () {
+				this.$http.post("{:url('addGoods')}",{
+					goods_name:this.goods_name,
+					goods_price:this.goods_price,
+					goods_description:this.goods_description,
+					category_id:this.category_id,
+					// goods_thumb:this.goods_thumb_prev,
+					goods_thumb:JSON.stringify(this.goods_thumb_prev)
+				})
+					.then(()=>{
+						// this.is_add = false
+						// this.data_list.unshift(rtnD.body.data)
+						// this.clear()
+						this.$http.get("{:url('getTeam')}",{params:{page:this.currentPage}})
+							.then((rtnD)=>{
+								this.is_add = false
+								this.data_list = rtnD.body.data
+								this.clear()
+							})
+					})
+
+			},
+			edit:function (info) {
+				this.clear()
+				// this.is_edit = true
+				this.goods_name = info.goods_name
+				this.goods_price = info.goods_price
+				this.category_id = info.category_id
+
+				this.$http.post("{:url('getInfo')}",{id:info.id})
+					.then((rtnD)=>{
+					
+						this.goods_description = rtnD.body.info
+
+						var goods_thumb_a = JSON.parse(rtnD.body.goods_thumbs)
+
+						if(goods_thumb_a){
+							goods_thumb_a.forEach((ele,index)=>{
+		                		
+		                		var goods_thumb_str = "__ADMIN__"+ele
+		                		this.goods_thumb_prev.push(goods_thumb_str)
+		                	})
+						}
+						this.goods_thumb = this.goods_thumb_prev
+						this.is_edit = true
+					})
+				
+				// this.goods_description = info.goods_description
+				// this.goods_thumb_prev = "__ADMIN__"+info.goods_thumb
+				this.edit_info = info
+			} ,
+			update:function () {
+
+				// console.log(JSON.stringify(this.edit_info.goods_thumb))
+				this.$http.post("{:url('updateGoods')}",{
+					goods_name:this.goods_name,
+					goods_price:this.goods_price,
+					goods_description:this.goods_description,
+					category_id:this.category_id,
+					id:this.edit_info.id,
+
+					goods_thumb:JSON.stringify(this.goods_thumb_prev),
+					old_goods_thumb:JSON.stringify(this.goods_thumb)
+
+
+				})
+					.then((rtnD)=>{
+
+						// console.log(this.goods_thumb)
+						this.is_edit = false
+						this.edit_info.goods_name = this.goods_name;
+						this.edit_info.goods_price = this.goods_price;
+						this.edit_info.category_id = this.category_id;					
+					})
+			},
+			del:function (id,index) {
+				this.$http.post("{:url('delGoods')}",{id})
+					.then(()=>{
+						  // this.data_list.splice(index,1)
+						  this.$http.get("{:url('getLists')}",{params:{page:this.currentPage}})
+							.then((rtnD)=>{
+								this.data_list = rtnD.body.data
+							})
+					})
+			},
+			tofu:function(param){
+				console.log(param)
+			}	
+
+		}
+	})
+</script>
+
+{include file="footer"}

@@ -1,0 +1,175 @@
+{include file="header"}
+<link rel="stylesheet" type="text/css" href="__MOBILE__/css/swiper.min.css"/>
+<script src="__MOBILE__/js/swiper.min.js"></script>
+<style type="text/css">
+	img{
+		width: 100%;
+	}
+	.mint-swipe-items-wrap{
+		height: 140px;
+	}
+	.mint-swipe-items-wrap img{
+		width: 100%;
+	}
+
+</style>
+<div class="container" >
+	<p  class="page-title">商品列表</p>
+
+	<nav>
+		<div class="swiper-container">
+		    <div class="swiper-wrapper">
+		      <div class="swiper-slide cur">上新</div>
+		      <div class="swiper-slide">婴童</div>
+		      <div class="swiper-slide">居家百货</div>
+		      <div class="swiper-slide">服饰</div>
+		      <div class="swiper-slide">美妆个性</div>
+		      <div class="swiper-slide">女装</div>
+		      <div class="swiper-slide">上新</div>
+		      <div class="swiper-slide">婴童</div>
+		      <div class="swiper-slide">居家百货</div>
+		      <div class="swiper-slide">服饰</div>
+		      <div class="swiper-slide">美妆个性</div>
+		      <div class="swiper-slide">女装</div>
+		    </div>
+		</div> 
+  	</nav>
+
+  	<div class="banner">
+		<div class="row">
+		  <div class="col-xs-12 col-sm-12 col-md-12">
+			 <div class="swiper-container2">
+			    <div class="swiper-wrapper">
+			      <div class="swiper-slide"><img src="__MOBILE__/images/2_02.jpg"/></div>
+			      <div class="swiper-slide"><img src="__MOBILE__/images/2_04_02.jpg"/></div>
+			    </div>
+			    <div class="swiper-pagination"></div>
+			  </div>
+		  </div>				 
+		</div>			  	
+	</div>
+	<section class="nav_top">
+	  	<ul class="nav_top_list">
+	  		<li><img src="__MOBILE__/images/2_05.jpg"/>清仓</li>
+	  		<li><img src="__MOBILE__/images/1_05.jpg"/>9.9精选</li>
+	  		<li><img src="__MOBILE__/images/1_07.jpg"/>爆款热销</li>
+	  		<li><img src="__MOBILE__/images/1_09.jpg"/>1元团</li>
+	  		<li><img src="__MOBILE__/images/1_11.jpg"/>签到红包</li>	  		
+	  	</ul>
+	</section>
+	<div class="clear"></div>
+	<section class="banner_2">
+	  	<img src="__MOBILE__/images/2_08.jpg"/>
+	</section>
+	<section class="banner_3">
+	  	<div class="row">
+	  		<div class="col-xs-1 col-sm-1 col-md-1">
+
+		  	</div>
+		  	<div class="col-xs-5 col-sm-5 col-md-5">
+		  		<img src="__MOBILE__/images/2_11.jpg"/>
+		  	</div>
+		  	<div class="col-xs-5 col-sm-5 col-md-5">
+		  		<img src="__MOBILE__/images/2_11.jpg"/>
+		  	</div>
+		  <div class="col-xs-1 col-sm-1 col-md-1">
+
+		  </div>
+		</div>	
+	</section>
+	<section class="miaosha mar">
+	  	<div class="miaosha_top">
+	  		<div class="row">	  			
+	  			<div class="col-xs-4 col-sm-4 col-md-4 miaosha_logo">
+	  				<img src="__MOBILE__/images/2_14.jpg"/>
+	  			</div>
+	  			<div class="col-xs-4 col-sm-4 col-md-4">
+	  				<div class="miaosha_top_time">
+	  					<span>15:00 场</span>04:50:17
+	  				</div>
+	  			</div>
+	  			<div class="col-xs-3 col-sm-3 col-md-3">	  				
+	  				<p>更多好货 ▶</p>
+	  			</div>
+	  		</div>
+	  	</div>
+	  		<ul class="miaosha_list">
+	  			<li v-for="info in goods_list">
+	  				<a :href="'{:url('goods/index')}?goods_id='+info.id">
+		  				<img :src="'__ADMIN__' + info.goods_thumb"/>
+		  				<span>秒杀价</span>￥{{info.goods_price}}
+	  				</a>
+	  			</li>
+	  		</ul>
+	</section>
+
+	
+</div>
+<script type="text/javascript">
+	new Vue({
+		el:".container",
+		data:{
+			goods_list:[],
+			loading:false,
+			current_page:0,
+			last_page:0,
+
+		},
+		created(){
+			this.init()
+		},
+		methods:{
+			init(){
+				this.$http.post("{:url('getHotGoods')}")
+					.then((rtnD)=>{
+						this.goods_list = rtnD.body.data
+						this.current_page = rtnD.body.current_page
+						this.last_page = rtnD.body.last_page
+
+					})
+			},
+			loadMore(){
+				if( this.current_page < this.last_page){
+
+					this.loading = true;
+					this.$http.get("{:url('getHotGoods')}",{params:{page:++this.current_page}})
+						.then((rtnD)=>{
+							
+							this.goods_list.push(...rtnD.body.data) 
+							this.loading = false;
+					})
+
+				}else if(this.current_page>0){
+
+					this.$toast('没了呢！')
+				}
+			},
+			
+		}
+
+	})
+
+	var swiper = new Swiper('.swiper-container', {
+	      slidesPerView: 5,
+	      spaceBetween: 0,
+	      freeMode: false,
+	      autoWidth:true,
+	      
+	      pagination: {
+	        el: '.swiper-pagination',
+	        clickable: true,
+	      },
+	    });
+	    
+    var swiper2 = new Swiper('.swiper-container2', {
+    	loop: true,
+    	autoplay:true,
+      pagination: {
+        el: '.swiper-pagination',
+
+      },
+    });	    
+</script>
+
+
+{include file="footer"}

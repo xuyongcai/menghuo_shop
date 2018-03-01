@@ -1,0 +1,48 @@
+
+<template id="myUpload">
+	<!-- 遵循特点：html内容只可以放在第一个容器中 -->
+	<div>
+		<div v-if="src">
+			<img :src="src" style="height: 180px">
+		</div>
+		<input ref="file_el"  type="file" @change="choise_file">
+	</div>
+
+</template>
+
+
+
+<script type="text/javascript">
+	Vue.component("my-upload",{
+		template:"#myUpload",
+		props:{
+			src:{
+				type:String,
+				default:''
+			}
+		},
+		methods:{
+			choise_file :function(){
+				
+				var file_info = this.$refs.file_el.files[0]	
+				// console.log(file_info)
+
+				// FileReader
+				var fr = new FileReader()
+				// 通过fr.readAsDataURL文件的内容进行读取
+				fr.readAsDataURL(file_info)
+				var that = this
+				fr.onload = function () {
+					// DataUrl data? :data:image/jpeg;base64,/9j/4
+					that.src = this.result
+					// console.log(this.result)
+					
+					// 父组件
+					that.$emit('input',this.result)
+				}
+
+			}
+		}
+	})
+
+</script>

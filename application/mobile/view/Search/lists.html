@@ -1,0 +1,137 @@
+{include file="header"}
+<link rel="stylesheet" href="__MOBILE__/search/index.css">
+
+
+<style>
+  .container{
+    padding-bottom: 0px !important;
+  }
+
+  .list-group-item{
+    padding: .4rem 0.75rem;
+    text-align: center;
+    font-size: 0.6rem;
+    font-weight: 700;
+  }
+    .col-3,.col-9,.col-4{
+      text-align: center;
+      padding-left: 5px;
+      padding-right: 5px;
+   }
+
+   .row{
+      font-size: 0.85rem;
+   }
+
+   .care_item h6{
+      text-align: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+   }
+
+  .mint-search{
+    height: 60px;
+  }
+
+   #listgroup-ex{
+      height: 100vh!important;
+   }
+
+  .list{
+    text-align: center;
+  }
+   .list img{
+     width: 100%
+   }
+</style>
+
+<div class="vue_box">
+     <mt-search autofocus v-model="value" @input="search" :result="result" show>
+      <b-row class="tab">
+        <b-col cols="3">
+            <span @click="type=1;sortBytype()" :class="type==1?'select':''">综合</span>
+        </b-col>
+        <b-col cols="3">
+            <span @click="type=2;sortBytype()" :class="type==2?'select':''">销量</span>
+        </b-col>
+        <b-col cols="3">
+            <span @click="type==3?type=4:type=3;sortBytype()" :class="type==3 || type==4?'select':''">价格</span>
+            <img v-if="type!=3 && type!=4" style="top: -2px;" class="icon ml-1" src="__MOBILE__/images/down.png">
+            <img v-if="type==3" style="top: -2px;" class="icon  ml-1" src="__MOBILE__/images/red_down.png">
+            <img v-if="type==4" style="top: -2px;" class="icon  ml-1" src="__MOBILE__/images/red_up.png">
+        </b-col>
+        <b-col cols="3">
+            <span  @click="filter=1;modalShow = true" :class="filter==1?'select':''">筛选</span>
+            <img v-if="type!=5" class="icon ml-1" src="__MOBILE__/images/more.png" alt="">
+            <img v-if="type==5" class="icon ml-1" src="__MOBILE__/images/red_more.png" alt="">
+        </b-col>
+      </b-row>
+     <div>
+        <!-- Modal Component -->
+        <b-modal title="价格区间" v-model="modalShow" @ok="sortBytype()">
+          <b-row>
+             <b-col cols="3"><div  @click="priceType=0" :class="priceType==0?'select':''">不限</div></b-col>
+             <b-col cols="3"><div  @click="priceType=1" :class="priceType==1?'select':''">0-50</div></b-col>
+             <b-col cols="3"><div  @click="priceType=2" :class="priceType==2?'select':''">51-100</div></b-col>
+             <b-col cols="3"><div  @click="priceType=3" :class="priceType==3?'select':''">101-200</div></b-col>
+             <b-col cols="3"><div  @click="priceType=4" :class="priceType==4?'select':''">200以上</div></b-col>
+          </b-row>
+        </b-modal>
+      </div>
+      <div v-for="item in result" class="box m-2">
+        <a :href="'{:url('goods/index')}?goods_id='+item.id">
+         <div class="row container">
+           <div col="3" style="width: 80px" class="mr-2"><img :src="'__ADMIN__/'+item.goods_thumb"></div>
+           <div col="9">
+              <p class="mb-2">{{item.goods_name}}</p>
+              <p style="color:#f00;font-weight: 600" class="mb-2">￥{{item.goods_price}}</p>
+              <p style="font-size: 0.75rem; color: #ccc">评价数：{{item.comment_num}}</p>
+           </div>
+         </div>
+        </a>
+      </div>
+     </mt-search>
+</div>
+
+<script>
+    new Vue({
+      el:'.vue_box',
+      data:{
+         category_id:'{$category_id}',
+         value:'',
+         result:{$list},
+         type:0,
+         priceType:0,
+         modalShow:false,
+         filter:0,
+      },
+      created: function(){
+         this.init();
+      },
+      methods:{
+         init:function(){
+            this.result = {$list};     //使用双引号会报错
+           
+         },
+
+         search:function(){
+            if(this.value == ""){
+            }else{
+              this.$http.post("{:url('search')}",{value:this.value,category_id:this.category_id})
+                  .then((rtnD)=>{
+                      this.result = rtnD.body;
+                   })
+            }
+         },
+
+         sortBytype:function(){
+           this.$http.post("{:url('sortBytype')}",{type:this.type,priceType:this.priceType,value:this.value,category_id:this.category_id})
+               .then((rtnD)=>{
+                  this.result = rtnD.body;
+               })
+         }
+      }
+   })
+</script>
+
+{include file="footer"}

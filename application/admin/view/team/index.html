@@ -1,0 +1,276 @@
+
+
+{include file="header"}
+
+	<style type="text/css">
+	.add_box{ 
+	    width: 100%;
+	    bTeam: 1px solid #ccc;
+	    height: 100%;
+	    padding: 10px;}
+		.fade-enter-active{
+			 transition: all 1s;
+		}
+		.fade-enter{
+			opacity: 0;
+		}
+		.form-control.is-valid{bTeam-color:#ccc !important;}
+
+		ul{margin: 0;padding: 0;}
+		ul li{list-style: none;}
+	</style>
+</head>
+<body>
+	<div class="vue_box container">
+		<transition name="fade">
+			<div class="data_list_box" v-if="!is_add && !is_edit">
+				<h2>拼团列表</h2>
+				<b-button variant="primary" @click="add()">添加拼团</b-button>
+
+				<b-table :items="data_list" fixed hover :fields="fields">
+					
+					<template slot="manger" slot-scope="row">
+						<b-button @click="edit(row.item)" variant="primary" >编辑</b-button>
+						<b-button @click="del(row.item.id,row.index)" variant="danger" >删除</b-button>
+						<a target="_blank" :href="'{:url('mobile/team_active/index')}'+'?team_id='+row.item.id" class="btn btn-info">查看</a>
+					</template>
+
+					<template slot="status" slot-scope="row">	
+						{{row.item.status==1?'正常':'失效'}}
+					</template>
+
+				</b-table>
+	 
+
+				<b-pagination size="md" :total-rows="total_rows" v-model="currentPage" :per-page="per_page">
+	    		</b-pagination>
+			</div>
+		</transition>
+
+
+		<transition name="fade">
+			<div class="add_box" v-if="is_add || is_edit">
+				<h2 >{{form_type}}表单</h2>
+
+				<b-form-group label="拼团名称" >
+					<b-form-input   v-model="edit_info.name"></b-form-input>
+				</b-form-group>
+
+				<b-form-group label="拼团商品" >
+					<b-button  @click="choiseGoods" v-b-modal.goods_list_box>拼团商品</b-button>
+					<span>{{edit_info.goods_name}}</span>
+				</b-form-group>
+
+				<b-form-group label="拼团所需人数" >
+					<b-form-input   v-model="edit_info.people_num"></b-form-input>
+				</b-form-group>
+
+				<b-form-group label="拼团价格" >
+					<b-form-input   v-model="edit_info.team_price"></b-form-input>
+				</b-form-group>
+
+				<b-modal title="请选择商品" size="lg" id="goods_list_box" ref="goods_list_box">
+					<b-table :items="goods_list" hover>
+						<template slot="id" slot-scope="row">
+							<label><input type="radio" name="us_name" @click="checkIt(row.item)">{{row.item.id}}</label>
+						</template>
+					</b-table>
+
+					<b-pagination size="md" :total-rows="g_total_rows" v-model="g_currentPage" :per-page="g_per_page">
+    				</b-pagination>
+				</b-modal>
+
+				<b-button @click="is_add?save():update()" variant="primary">{{form_type}}拼团</b-button>
+				<b-button @click="is_add=is_edit=false" variant="info">返回</b-button>
+			</div>
+		</transition>
+		
+
+	</div>
+
+<script type="text/javascript">
+	new Vue({
+		el:'.vue_box',
+		data:{
+			data_list:[],//数据列表
+			edit_info:null,//编辑信息
+			goods_list:[],//拼团对应的商品列表
+			is_add:false,//是否添加
+			is_edit:false,//是否编辑
+			fields:[
+				{
+					key:'name',
+					label:'拼团名称',
+					sortable: false
+				},
+				{
+					key:'goods_name',
+					label:'商品名称'
+				},
+				{
+					key:'status',
+					label:'拼团状态'
+				},
+				{
+					key:'team_price',
+					label:'拼团价'
+				},
+				{
+					key:'people_num',
+					label:'拼团所需人数'
+				},
+				{
+					key:'manger',
+					label:'操作'
+				}
+			],
+			per_page:0,//每一页显示的数量
+			total_rows:0,//总有多少条记录
+			currentPage:1,//当前是第一页
+			g_per_page:0,//每一页显示的数量(商品)
+			g_total_rows:0,//总有多少条记录(商品)
+			g_currentPage:1,//当前是第一页(商品)
+
+		},
+		watch:{
+			currentPage:function (val) {
+				// tp5分页，直接传固定参数page=1
+				this.$http.get("{:url('getTeam')}",{params:{page:val}})
+					.then((rtnD)=>{
+						this.data_list = rtnD.body.data
+					})
+					
+			},
+			g_currentPage:function (val) {
+				// tp5分页，直接传固定参数page=1
+				this.$http.get("{:url('getGoods')}",{params:{page:val}})
+					.then((rtnD)=>{
+						this.goods_list = rtnD.body.data
+					})
+					
+			}
+		},
+		created(){
+
+			var list = JSON.parse('{$info}')
+			// console.log(list)
+			if (list) {
+				this.data_list = list.data
+				this.total_rows = list.total
+				this.per_page = list.per_page
+				this.currentPage = list.current_page
+			}
+						
+		},
+		computed:{
+			form_type(){
+				if (this.is_add) {
+					return '添加'
+				}else if(this.is_edit) {
+					return '编辑'
+				}
+				return ''
+			},
+		},
+		methods:{
+			clear:function () {
+
+				this.edit_info={
+					name:"",
+					goods_name:"",
+					goods_id:"",
+					people_num:"",
+					team_price:"",
+				}
+
+			},
+			add:function () {
+				this.is_add = true
+				this.clear()
+			},
+			save:function () {
+				this.$http.post("{:url('addTeam')}",{
+					name:this.edit_info.name,
+					goods_name:this.edit_info.goods_name,
+					goods_id:this.edit_info.goods_id,
+					people_num:this.edit_info.people_num,
+					team_price:this.edit_info.team_price,
+				})
+					.then(()=>{
+						this.$http.get("{:url('getTeam')}",{params:{page:this.currentPage}})
+							.then((rtnD)=>{
+								this.is_add = false
+								this.data_list = rtnD.body.data
+								this.clear()
+							})
+					})
+
+			},
+			checkIt(info){
+				 // console.log(info)
+				 this.edit_info.goods_name = info.商品名称
+				 this.edit_info.goods_id = info.id
+				 this.$refs.goods_list_box.hide()
+			},
+			edit:function (info) {
+				this.is_edit = true
+				this.edit_info = info
+				// console.log(this.edit_info)
+				
+			} ,
+			update:function () {
+				this.$http.post("{:url('updateTeam')}",{
+					name:this.edit_info.name,
+					goods_name:this.edit_info.goods_name,
+					goods_id:this.edit_info.goods_id,
+					people_num:this.edit_info.people_num,
+					team_price:this.edit_info.team_price,
+					id:this.edit_info.id
+				})
+					.then((rtnD)=>{
+						this.is_edit = false
+
+					})
+			},
+			del:function (id,index) {
+				this.$http.post("{:url('delTeam')}",{id})
+					.then(()=>{
+						this.$http.get("{:url('getTeam')}",{params:{page:this.currentPage}})
+							.then((rtnD)=>{
+								this.data_list = rtnD.body.data
+							})
+					
+					})
+			},
+			details(item,index,event){
+				// console.log(event)
+				this.$http.post("{:url('getGoods')}",{
+					Team_id:item.id
+				}).then((rtnD)=>{
+					this.goods_list = rtnD.body
+				})
+
+				this.$http.post("{:url('getUsername')}",{id:item.user_id})
+				.then((rtnD)=>{
+					// console.log(rtnD)
+					this.team_name = rtnD.body;
+				})
+			},
+			choiseGoods(){
+				this.$http.post("{:url('getGoods')}")
+					.then((rtnD)=>{
+						// console.log(rtnD.body)
+					  	this.goods_list = rtnD.body.data
+
+					  	this.g_total_rows = rtnD.body.total
+						this.g_per_page = rtnD.body.per_page
+						this.g_currentPage = rtnD.body.current_page
+					})
+			},
+			
+
+		}
+	})
+</script>
+
+{include file="footer"}

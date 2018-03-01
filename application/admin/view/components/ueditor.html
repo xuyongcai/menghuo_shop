@@ -1,0 +1,24 @@
+
+
+<!-- 配置文件 -->
+<script type="text/javascript" src="__ADMIN_PUBLIC__/static/library/ueditor/ueditor.config.js"></script>
+
+<!-- 编辑器源码文件 -->
+<script type="text/javascript" src="__ADMIN_PUBLIC__/static/library/ueditor/ueditor.all.js"></script>
+
+<template id="myEditor">
+		<textarea  id="tinymceEditer"  ></textarea>
+</template>
+
+<!-- 实例化编辑器 -->
+<script type="text/javascript">
+	Vue.component('editor', {
+	    template: '#myEditor',
+
+	    mounted(){
+	   		var ue = UE.getEditor('tinymceEditer');
+	    }
+
+	})
+    
+</script>

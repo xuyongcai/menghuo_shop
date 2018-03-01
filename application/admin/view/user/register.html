@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>注册账号</title>
+	<link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="__ADMIN_PUBLIC__/static/admin/css/register.css">
+
+	<script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+
+	<script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+ 	<script src="https://cdn.bootcss.com/vue/2.5.13/vue.min.js"></script>
+ 	<script src="__ADMIN_PUBLIC__/static/admin/js/register.js"></script>
+
+
+	
+</head>
+<body>
+	<div class="container">
+		<div class="main">
+			<div class="main_panel">
+				<div class="main_inner">
+					<div class="head">
+						<h1 class="h1">欢迎来到注册页面</h1>
+					</div>
+					<div class="form_container">
+						<form action="{:url('doRegister')}"  method="post">
+							<div class="form_item">
+								<div class="input_box">
+									<input type="text" name="username" id="userName" class="user_name f_input" placeholder="设置用户名" />
+									<i class="iconfont cpt_icon">&#xe993;</i>
+								</div>
+								<div class="tips">
+									<i class="iconfont l_arrow_icon">&#xe660;</i>
+									<ul>
+										<li class="tips_item"><i class="iconfont dot_icon">&#xe611;</i>5-25个字符，推荐使用中文</li>
+										<li class="tips_item"><i class="iconfont dot_icon">&#xe611;</i>设置后不能更改</li>
+										<li class="tips_item"><i class="iconfont dot_icon">&#xe611;</i>请勿包含身份证/银行卡等隐私信息银行卡等隐私信息</li>
+									</ul>
+								</div>
+								<div class="error_tips"></div>
+							</div>
+							<div class="form_item">
+								<div class="input_box">
+									<input type="password" name="password" id="password" class="password f_input" placeholder="密码"/>
+									<i class="iconfont cpt_icon">&#xe993;</i>
+								</div>
+								<div class="tips">
+									<i class="iconfont l_arrow_icon">&#xe693;</i>
+									<ul>
+										<li class="tips_item"><i class="iconfont dot_icon">&#xe611;</i>不能包括空格</li>
+										<li class="tips_item"><i class="iconfont dot_icon">&#xe611;</i>长度为6-16个字符</li>
+										<li class="tips_item"><i class="iconfont dot_icon">&#xe611;</i>字母、数字、符号至少包含2种</li>
+									</ul>
+								</div>
+								<div class="error_tips"></div>
+							</div>
+							<div class="form_item">
+								<div class="input_box">
+									<input type="password" name="c_password" id="c_password" class="password f_input" placeholder="确认密码" />
+									<i class="iconfont cpt_icon">&#xe993;</i>
+								</div>	
+								<div class="tips">
+									<i class="iconfont l_arrow_icon">&#xe693;</i>
+									<ul>
+										<li class="tips_item"><i class="iconfont dot_icon">&#xe611;</i>请再次输入你的密码</li>
+									</ul>
+								</div>
+								<div class="error_tips"></div>
+							</div>
+							<!-- 问题 -->
+							<div class="form_item">
+								<div class="input_box">
+									<input type="text" name="question" id="question" class="question f_input" placeholder="设置你的问题" />
+									<i class="iconfont cpt_icon">&#xe993;</i>
+								</div>	
+								<div class="tips">
+									<i class="iconfont l_arrow_icon">&#xe693;</i>
+									<ul>
+										<li class="tips_item"><i class="iconfont dot_icon">&#xe611;</i>可通过问题和答案找回密码</li>
+									</ul>
+								</div>
+								<div class="error_tips"></div>
+							</div>
+							<!-- 问题答案 -->
+							<div class="form_item">
+								<div class="input_box">
+									<input type="text" name="answer" id="answer" class="answer f_input" placeholder="设置你的问题答案" />
+									<i class="iconfont cpt_icon">&#xe993;</i>
+								</div>	
+								<div class="tips">
+									<i class="iconfont l_arrow_icon">&#xe693;</i>
+									<ul>
+										<li class="tips_item"><i class="iconfont dot_icon">&#xe611;</i>问题答案很重要,请牢记</li>
+									</ul>
+								</div>
+								<div class="error_tips"></div>
+							</div>
+							<div class="form_item">
+								<div class="input_box">
+									<span class="input_before">+86</span>
+									<input type="text" name="phone" id="phone" class="phone f_input" placeholder="手机号码" />
+									<i class="iconfont cpt_icon">&#xe993;</i>
+								</div>	
+								<div class="tips">
+									<i class="iconfont l_arrow_icon">&#xe693;</i>
+									<ul>
+										<li class="tips_item"><i class="iconfont dot_icon">&#xe611;</i>可通过手机号找回密码</li>
+									</ul>
+								</div>
+								<div class="error_tips"></div>
+							</div>							
+							<div class="form_item">
+								<input type="submit" id="sbm" class="sbm" value="立即注册" />			
+							</div>
+							<div class="form_item">
+								<div class="foot">
+									<label>
+										<input type="checkbox" id="readChecked" checked="checked"/>
+									</label>
+									<a href="#">《XXX服务条款》</a>
+									<span class="divide"></span>
+									<a href="#">《法律声明和隐私权政策》</a>
+									<div class="error_tips"></div>
+								</div>
+							</div>
+							
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+
+
+	</div>
+</body>
+</html>
+<script type="text/javascript">
+	new Vue({
+		el:'.container',
+		data:{
+			user_info:{
+				
+			},
+			warning:false,
+		},
+		methods:{
+			submit: function(){
+
+			},
+		
+		}
+	})
+</script>

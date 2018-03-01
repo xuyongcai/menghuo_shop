@@ -1,0 +1,104 @@
+
+<template id="myMultiUpload">
+	<!-- 遵循特点：html内容只可以放在第一个容器中 -->
+	<div>
+		<div>
+			<img :src="info" draggable="true" v-for="(info,index) in preview_img" :id="index" style="height: 180px" @dragstart="dragstart"  @dragover="dragover" @dragend="dragend" >
+		</div>
+		<input ref="file_el" multiple type="file" @change="choise_file">
+	</div>
+
+</template>
+
+
+
+<script type="text/javascript">
+	Vue.component("my-multi-upload",{
+		template:"#myMultiUpload",
+		data(){
+			return {
+				preview_img:[],
+				start_id:0,
+				end_id:0
+			}
+		},
+		props:{
+			preview_img:[]
+		},
+		watch:{
+			preview_img(val){
+				this.$emit('input',val)
+			}
+		},
+		created(){
+			// console.log(this.sec)
+		},
+		methods:{
+			dragstart:function(ev){
+				this.start_id = ev.target.id
+				// console.log(ev.target.id)
+
+	
+			},
+			dragover:function(ev){
+				this.end_id = ev.target.id
+				// console.log(ev.target.id)
+
+			},
+			dragend:function(ev){
+				//dragend获取的ev是开始时（dragstart）获取的那个
+				// console.log(ev.target.id)
+
+				var move_data = this.preview_img[this.start_id]
+
+				this.preview_img.splice(this.start_id,1,this.preview_img[this.end_id])
+
+				this.preview_img.splice(this.end_id,1,move_data)
+
+			},
+			choise_file:function(){
+				// console.log(this.$refs)
+				this.preview_img = []
+
+				for (var i = 0; i < this.$refs.file_el.files.length; i++) {
+					
+					var file_info = this.$refs.file_el.files[i]	
+
+					var fd = new FormData() 
+
+					fd.append('file_info',file_info)
+					fd.append('num',i)
+					var that = this
+
+				 	// $.ajax({
+					 // 	url:'{:url("goods/saveImages")}',
+					 // 	type:'post',
+					 // 	contentType:false,
+			   //      	processData:false,//为false则传给后台的不是对象
+					 // 	data:fd,
+					 // 	success:function (rtnData) {
+					 // 		 that.preview_img.push("__ADMIN__"+rtnData)
+					 // 	}
+					 // })
+
+					// FileReader
+					var fr = new FileReader()
+					// 通过fr.readAsDataURL文件的内容进行读取
+					fr.readAsDataURL(file_info)
+					var that = this
+					fr.onload = function () {
+						// DataUrl data? :data:image/jpeg;base64,/9j/4
+						that.preview_img.push(this.result) 
+						// console.log(this.result)
+						
+					// 	// 父组件
+					// 	// that.$emit('input',this.result)
+					}
+
+				}
+				
+			}
+		}
+	})
+
+</script>
